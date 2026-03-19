@@ -1,7 +1,7 @@
 import { ObjectId } from "mongodb";
 import User, { IUser } from "./User";
 import { IFormBrief } from "./FormBrief";
-import { getDB } from "../config/mongodb";
+import { client, getDB } from "../config/mongodb";
 import { NotFoundError } from "../helpers/CustomError";
 
 
@@ -114,14 +114,25 @@ export default class UserBooking {
     }
 
     static async updateBookingPaymentStatus(bookingId: string, isPaid: boolean): Promise<string> {
-        const collection = await this.getCollection();
-        const result = await collection.updateOne(
-            { _id: new ObjectId(bookingId) },
-            { $set: { isPaid } }
-        );
-        if (result.modifiedCount === 0) {
-            throw new NotFoundError("Booking not found");
+        const session = client.startSession();
+        try {
+            const message = await session.withTransaction(async () => {
+                const collection = await this.getCollection();
+                const result = await collection.updateOne(
+                    { _id: new ObjectId(bookingId) },
+                    { $set: { isPaid } },
+                    { session }
+                );
+                if (result.modifiedCount === 0) {
+                    throw new NotFoundError("Booking not found");
+                }
+                return "Booking payment status updated successfully";
+            });
+            return message;
+        } catch (error) {
+            throw new Error("Failed to update booking payment status");
+        } finally {
+            await session.endSession();
         }
-        return "Booking payment status updated successfully";
     }
 }
