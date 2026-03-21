@@ -1,6 +1,6 @@
 import React from 'react';
 import { Heart, Search, Video } from 'lucide-react'; // Library icon (opsional: npm install lucide-react)
-import ChatbotWidget from '../src/components/Chatbot';
+import ChatbotWidget from '../components/Chatbot';
 
 export default function Home() {
   return (
