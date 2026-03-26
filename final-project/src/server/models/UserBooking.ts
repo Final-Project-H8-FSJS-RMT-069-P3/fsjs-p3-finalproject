@@ -61,9 +61,9 @@ export default class UserBooking {
                 foreignField: "_id",
                 as: "formBrief"
             }},
-                { $unwind: "$staff" },
-                { $unwind: "$user" },
-                { $unwind: "$formBrief" }
+                { $unwind: { path: "$staff" , preserveNullAndEmptyArrays: true } },
+                { $unwind: { path: "$user" , preserveNullAndEmptyArrays: true } },
+                { $unwind: { path: "$formBrief" , preserveNullAndEmptyArrays: true } }
         ]).toArray() as IBooking[];
         return bookings;
     }
@@ -94,20 +94,24 @@ export default class UserBooking {
                 foreignField: "_id",
                 as: "formBrief"
             }},
-                { $unwind: "$staff" },
-                { $unwind: "$user" },
-                { $unwind: "$formBrief" }
+                { $unwind: { path: "$staff" , preserveNullAndEmptyArrays: true } },
+                { $unwind: { path: "$user" , preserveNullAndEmptyArrays: true } },
+                { $unwind: { path: "$formBrief" , preserveNullAndEmptyArrays: true } }
         ]).toArray() as IBooking[];
         return bookings;
     }
 
     static async updateBookingStatus(bookingId: string, isDone: boolean): Promise<string> {
         const collection = await this.getCollection();
+        const booking = await collection.findOne({ _id: new ObjectId(bookingId) });
+        if (!booking) {
+            throw new NotFoundError("Booking not found");
+        }
         const result = await collection.updateOne(
-            { _id: new ObjectId(bookingId) },
+            { _id: booking._id },
             { $set: { isDone } }
         );
-        if (result.modifiedCount === 0) {
+        if (result.matchedCount === 0) {
             throw new NotFoundError("Booking not found");
         }
         return "Booking status updated successfully";
@@ -118,18 +122,25 @@ export default class UserBooking {
         try {
             const message = await session.withTransaction(async () => {
                 const collection = await this.getCollection();
+                const booking = await collection.findOne({ _id: new ObjectId(bookingId) });
+                if (!booking) {
+                    throw new NotFoundError("Booking not found");
+                }
                 const result = await collection.updateOne(
-                    { _id: new ObjectId(bookingId) },
+                    { _id: booking._id },
                     { $set: { isPaid } },
                     { session }
                 );
-                if (result.modifiedCount === 0) {
+                if (result.matchedCount === 0) {
                     throw new NotFoundError("Booking not found");
                 }
                 return "Booking payment status updated successfully";
             });
             return message;
         } catch (error) {
+            if (error instanceof NotFoundError) {
+                throw error;
+            }
             throw new Error("Failed to update booking payment status");
         } finally {
             await session.endSession();

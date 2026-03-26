@@ -40,12 +40,18 @@ export default class User {
     static async getUserById(id: string): Promise<WithId<IUser> | null> {
         const collection = await this.getCollection();
         const user = await collection.findOne({ _id: new ObjectId(id) });
+        if (!user) {
+            throw new NotFoundError("User not found");
+        }
         return user;
     }
 
     static async getUserByEmail(email: string): Promise<WithId<IUser> | null> {
         const collection = await this.getCollection();
         const user = await collection.findOne({ email });
+        if (!user) {
+            throw new NotFoundError("User not found");
+        }
         return user;
     }
 
