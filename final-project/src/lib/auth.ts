@@ -20,6 +20,7 @@ declare module "next-auth" {
 }
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
+  secret: process.env.AUTH_SECRET,
   providers: [
     CredentialsProvider({
       name: "Credentials",
@@ -50,11 +51,13 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           return null;
         }
 
+        const role = user.role === "psychiatrist" || user.role === "DOCTOR" ? "DOCTOR" : "USER";
+
         return {
           id: user._id.toString(),
           name: user.name,
           email: user.email,
-          role: user.role || "USER",
+          role,
         };
       },
     }),

@@ -3,9 +3,7 @@ import { ObjectId } from "mongodb";
 import User from "@/server/models/User";
 import { BadRequestError } from "@/server/helpers/CustomError";
 import {
-	AUTH_PROXY_BASE_URL,
 	parseJsonBody,
-	proxyAuthRequest,
 	registerSchema,
 	toErrorResponse,
 } from "../_utils";
@@ -15,16 +13,8 @@ export async function POST(request: Request) {
 		const body = await parseJsonBody(request);
 		const payload = registerSchema.parse(body);
 
-		if (AUTH_PROXY_BASE_URL) {
-			const { status, data } = await proxyAuthRequest("/register", payload);
-			if (status >= 400) {
-				return NextResponse.json(data ?? { message: "Register failed" }, { status });
-			}
-
-			return NextResponse.json(data ?? { message: "Register success" }, { status });
-		}
-
-		const existingUser = await User.getUserByEmail(payload.email);
+		const collection = await User.getCollection();
+		const existingUser = await collection.findOne({ email: payload.email });
 		if (existingUser) {
 			throw new BadRequestError("Email is already registered");
 		}

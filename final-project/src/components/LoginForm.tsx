@@ -1,6 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
+import { signIn } from "next-auth/react";
 import { FormEvent, useState } from "react";
 import Swal from "sweetalert2";
 
@@ -13,14 +14,13 @@ export default function LoginForm() {
 
   async function handleLogin(e: FormEvent) {
     e.preventDefault();
-    const response = await fetch("/api/auth/login", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ email, password }),
+    const result = await signIn("credentials", {
+      email,
+      password,
+      redirect: false,
     });
-    if (!response.ok) {
+
+    if (!result || result.error) {
       Swal.fire({
         icon: "error",
         title: "Login Failed",
@@ -85,7 +85,7 @@ export default function LoginForm() {
         </form>
 
         <p className="text-center text-gray-600 text-sm mt-6">
-          Don't have an account?{" "}
+          Don&apos;t have an account?{" "}
           <a
             href="/register"
             className="text-green-600 font-semibold hover:underline"

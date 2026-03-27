@@ -1,13 +1,10 @@
 import { NextResponse } from "next/server";
-import User from "@/server/models/User";
+import { AuthError } from "next-auth";
+import { signIn } from "@/lib/auth";
 import {
-	AUTH_PROXY_BASE_URL,
-	extractToken,
 	loginSchema,
 	parseJsonBody,
-	proxyAuthRequest,
 	toErrorResponse,
-	withAuthCookie,
 } from "../_utils";
 
 export async function POST(request: Request) {
@@ -15,22 +12,18 @@ export async function POST(request: Request) {
 		const body = await parseJsonBody(request);
 		const payload = loginSchema.parse(body);
 
-		if (AUTH_PROXY_BASE_URL) {
-			const { status, data } = await proxyAuthRequest("/login", payload);
-			if (status >= 400) {
-				return NextResponse.json(data ?? { message: "Login failed" }, { status });
-			}
+		await signIn("credentials", {
+			email: payload.email,
+			password: payload.password,
+			redirect: false,
+		});
 
-			const token = extractToken(data);
-			const response = NextResponse.json(data ?? { message: "Login success" }, { status });
-
-			return token ? withAuthCookie(response, token) : response;
+		return NextResponse.json({ message: "Login success" }, { status: 200 });
+	} catch (error) {
+		if (error instanceof AuthError) {
+			return NextResponse.json({ message: "Invalid email or password" }, { status: 401 });
 		}
 
-		const token = await User.login(payload);
-		const response = NextResponse.json({ message: "Login success" }, { status: 200 });
-		return withAuthCookie(response, token);
-	} catch (error) {
 		return toErrorResponse(error);
 	}
 }

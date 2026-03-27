@@ -39,7 +39,7 @@ export default class FormBrief {
         const formBriefs = await collection.aggregate([
             { $match: { userId: user._id } },
             { $lookup: {
-                from: "users",
+                from: "Users",
                 localField: "userId",
                 foreignField: "_id",
                 as: "user"

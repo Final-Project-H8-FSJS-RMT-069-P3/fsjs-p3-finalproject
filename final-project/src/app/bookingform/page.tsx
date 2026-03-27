@@ -1,40 +1,19 @@
-'use client'
+// Example page.tsx
+import { Metadata } from "next";
+import BookingForm from "../../components/BookingForm";
 
-import { FormEvent, useState } from "react"
-
-export default function BookingForm () {
-  const [staffId, setStaffId] = useState('') //staffId from props
-  const [sessionDuration, setSessionDuration] = useState('')
-  const [amount, setAmount] = useState('')
-
-  async function handleBooking(e: FormEvent) {
-    e.preventDefault()
-    let response = await fetch('/api/bookings', {
-      method: 'POST',
-      body: JSON.stringify({staffId, sessionDuration, amount})
-    })
-  }
-  return (
-    <div>
-      <form onSubmit={handleBooking}>
-        <label htmlFor="">Durasi</label>
-        <input type="number" value={sessionDuration} onChange={e => setSessionDuration(e.target.value)}/>
-        <label htmlFor="">Amount</label>
-        <input type="number" value={amount} onChange={e => setAmount(e.target.value)} />
-        <button type="submit">Submit</button>
-      </form>
-    </div>
-  )
+export const metadata: Metadata = {
+  title: "Booking Form",
+  description: "Book your appointment",
 }
 
-// const bookingData = {
-//       userId: new ObjectId(session.user.id),
-//       staffId: new ObjectId(staffId),
-//       formBriefId: formBriefId ? new ObjectId(formBriefId) : null,
-//       date: new Date(date),
-//       sessionDuration: parseInt(sessionDuration) || 30,
-//       amount: parseFloat(amount) || 0,
-//       isPaid: false,
-//       isDone: false,
-//       createdAt: new Date(),
-//     };
+export default function BookPage() {
+  const doctorId = "663b8e4f1a2b3c4d5e6f7890"; //masih di hard code ya 
+
+  return (
+    <div>
+      <h1>Book an Appointment</h1>
+      <BookingForm staffId={doctorId} />
+    </div>
+  );
+}

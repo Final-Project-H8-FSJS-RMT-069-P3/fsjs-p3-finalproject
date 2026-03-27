@@ -26,7 +26,7 @@ export interface IUser {
 export default class User {
     static async getCollection() {
         const db = await getDB();
-        const collection = db.collection<IUser>("users");
+        const collection = db.collection<IUser>("Users");
         return collection;
     }
 

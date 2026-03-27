@@ -44,13 +44,13 @@ export default class UserBooking {
         const bookings = await collection.aggregate([
             { $match: { userId: user._id } },
             { $lookup: {
-                from: "users",
+                from: "Users",
                 localField: "staffId",
                 foreignField: "_id",
                 as: "staff"
             }},
             { $lookup: {
-                from: "users",
+                from: "Users",
                 localField: "userId",
                 foreignField: "_id",
                 as: "user"
@@ -77,13 +77,13 @@ export default class UserBooking {
         const bookings = await collection.aggregate([
             { $match: { staffId: staff._id } },
             { $lookup: {
-                from: "users",
+                from: "Users",
                 localField: "staffId",
                 foreignField: "_id",
                 as: "staff"
             }},
             { $lookup: {
-                from: "users",
+                from: "Users",
                 localField: "userId",
                 foreignField: "_id",
                 as: "user"
