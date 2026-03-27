@@ -1,5 +1,6 @@
 // Example page.tsx
 import { Metadata } from "next";
+import Link from "next/link";
 import BookingForm from "../../components/BookingForm";
 
 export const metadata: Metadata = {
@@ -7,8 +8,27 @@ export const metadata: Metadata = {
   description: "Book your appointment",
 }
 
-export default function BookPage() {
-  const doctorId = "663b8e4f1a2b3c4d5e6f7890"; //masih di hard code ya 
+type BookPageProps = {
+  searchParams: Promise<{
+    staffId?: string | string[];
+  }>;
+};
+
+export default async function BookPage({ searchParams }: BookPageProps) {
+  const params = await searchParams;
+  const doctorId = Array.isArray(params.staffId) ? params.staffId[0] : params.staffId;
+
+  if (!doctorId) {
+    return (
+      <div className="mx-auto max-w-xl p-6">
+        <h1 className="text-2xl font-bold mb-2">Book an Appointment</h1>
+        <p className="text-gray-600 mb-4">Please choose a doctor from the list first.</p>
+        <Link href="/listpsikolog" className="text-blue-600 font-semibold hover:underline">
+          Back to doctor list
+        </Link>
+      </div>
+    );
+  }
 
   return (
     <div>
