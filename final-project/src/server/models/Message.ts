@@ -54,14 +54,14 @@ export default class Message {
         const room = await collection.aggregate([
             { $match: { _id: new ObjectId(roomId) } },
             { $lookup: {
-                from: "users",
+                from: "Users",
                 localField: "userId",
                 foreignField: "_id",
                 as: "user"
             }},
             { $unwind: "$user" },
             { $lookup: {
-                from: "users",
+                from: "Users",
                 localField: "staffId",
                 foreignField: "_id",
                 as: "staff"
@@ -76,14 +76,14 @@ export default class Message {
         const room = await collection.aggregate([
             { $match: { roomName: { $regex: roomName, $options: "i" } } },
             { $lookup: {
-                from: "users",
+                from: "Users",
                 localField: "userId",
                 foreignField: "_id",
                 as: "user"
             }},
             { $unwind: "$user" },
             { $lookup: {
-                from: "users",
+                from: "Users",
                 localField: "staffId",
                 foreignField: "_id",
                 as: "staff"
@@ -110,7 +110,7 @@ export default class Message {
             { $match: { roomId: room._id } },
             {
                 $lookup: {
-                    from: "users",
+                    from: "Users",
                     localField: "senderId",
                     foreignField: "_id",
                     as: "sender"

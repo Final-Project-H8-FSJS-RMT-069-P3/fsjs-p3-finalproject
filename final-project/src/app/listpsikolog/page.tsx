@@ -1,10 +1,12 @@
 "use client";
 
 import Navbar from "@/components/navbar";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 
 const PSIKOLOG = [
   {
+    doctorId: "66a100000000000000000001",
     name: "Dina Amalia, M.Psi",
     role: "Psikolog Klinis Dewasa",
     harga: 399000,
@@ -20,6 +22,7 @@ const PSIKOLOG = [
     slots: ["09:00", "11:00", "14:00", "16:00"],
   },
   {
+    doctorId: "66a100000000000000000002",
     name: "Rizky Putra, M.Psi",
     role: "Psikolog Hubungan & Keluarga",
     harga: 350000,
@@ -35,6 +38,7 @@ const PSIKOLOG = [
     slots: ["10:00", "13:00", "15:00"],
   },
   {
+    doctorId: "66a100000000000000000003",
     name: "Sarah Wijaya, M.Psi",
     role: "Psikolog Anak & Remaja",
     harga: 320000,
@@ -50,6 +54,7 @@ const PSIKOLOG = [
     slots: ["08:00", "10:00", "14:00", "16:00"],
   },
   {
+    doctorId: "66a100000000000000000004",
     name: "Budi Santoso, M.Psi",
     role: "Psikolog Klinis & Trauma",
     harga: 375000,
@@ -65,6 +70,7 @@ const PSIKOLOG = [
     slots: ["09:00", "11:00", "15:00"],
   },
   {
+    doctorId: "66a100000000000000000005",
     name: "Rina Kusuma, M.Psi",
     role: "Psikolog Pernikahan & Keluarga",
     harga: 410000,
@@ -80,6 +86,7 @@ const PSIKOLOG = [
     slots: ["10:00", "12:00", "14:00", "17:00"],
   },
   {
+    doctorId: "66a100000000000000000006",
     name: "Fajar Ramadhan, M.Psi",
     role: "Psikolog Klinis & Karir",
     harga: 360000,
@@ -95,6 +102,7 @@ const PSIKOLOG = [
     slots: ["11:00", "13:00", "16:00", "18:00"],
   },
   {
+    doctorId: "66a100000000000000000007",
     name: "Laila Putri, M.Psi",
     role: "Psikolog Klinis & Trauma",
     harga: 380000,
@@ -110,6 +118,7 @@ const PSIKOLOG = [
     slots: ["09:00", "14:00", "16:00"],
   },
   {
+    doctorId: "66a100000000000000000008",
     name: "Andi Kurniawan, M.Psi",
     role: "Psikolog Dewasa & Relationship",
     harga: 340000,
@@ -149,6 +158,7 @@ const TAG_COLOR: Record<string, string> = {
 };
 
 export default function ListPsikolog() {
+  const router = useRouter();
   const [query, setQuery] = useState("");
   const [modeFilter, setModeFilter] = useState("");
   const [activeFilter, setActiveFilter] = useState("all");
@@ -161,6 +171,11 @@ export default function ListPsikolog() {
   const showToast = (msg: string) => {
     setToast({ msg, show: true });
     setTimeout(() => setToast((t) => ({ ...t, show: false })), 2800);
+  };
+
+  const goToBookingForm = (doctorId: string) => {
+    const params = new URLSearchParams({ staffId: doctorId });
+    router.push(`/bookingform?${params.toString()}`);
   };
 
   const filtered = PSIKOLOG.filter((p) => {
@@ -439,9 +454,7 @@ export default function ListPsikolog() {
                         className="flex-1 bg-blue-900 text-white py-2.5 rounded-xl text-sm font-bold hover:bg-blue-800 transition-all active:scale-95 hover:shadow-lg hover:shadow-blue-900/20"
                         onClick={(e) => {
                           e.stopPropagation();
-                          showToast(
-                            `Booking dengan ${p.name} dikonfirmasi! 🎉`
-                          );
+                          goToBookingForm(p.doctorId);
                         }}
                       >
                         Booking Jadwal
@@ -618,7 +631,7 @@ export default function ListPsikolog() {
                 <button
                   className="w-full bg-orange-500 text-white py-3.5 rounded-2xl text-base font-black hover:bg-orange-600 transition-all active:scale-95 hover:shadow-lg hover:shadow-orange-200"
                   onClick={() => {
-                    showToast(`Booking dengan ${modal.name} dikonfirmasi! 🎉`);
+                    goToBookingForm(modal.doctorId);
                     setModal(null);
                   }}
                 >

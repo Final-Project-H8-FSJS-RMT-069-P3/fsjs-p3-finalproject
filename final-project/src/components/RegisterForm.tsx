@@ -1,6 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
+import { signIn } from "next-auth/react";
 import { FormEvent, useState } from "react";
 import Swal from "sweetalert2";
 
@@ -36,6 +37,24 @@ export default function RegisterForm() {
       });
       return;
     }
+
+    const loginResult = await signIn("credentials", {
+      email,
+      password,
+      redirect: false,
+    });
+
+    if (!loginResult || loginResult.error) {
+      Swal.fire({
+        icon: "success",
+        title: "Registration Successful",
+        text: "Your account is ready. Please login to continue.",
+      }).then(() => {
+        router.push("/login");
+      });
+      return;
+    }
+
     Swal.fire({
       icon: "success",
       title: "Registration Successful",
