@@ -2,8 +2,9 @@
 
 import Navbar from "@/components/navbar";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
+/*
 const PSIKOLOG = [
   {
     doctorId: "66a100000000000000000001",
@@ -134,6 +135,84 @@ const PSIKOLOG = [
     slots: ["10:00", "12:00", "15:00", "17:00"],
   },
 ];
+*/
+
+type ApiDoctor = {
+  _id: string;
+  name: string;
+  email: string;
+  role: "user" | "psychiatrist";
+  phoneNumber: string;
+  address: string;
+  psychiatristInfo?: {
+    certificate?: string;
+    experience?: number;
+    scheduleDays?: string[];
+    scheduleTimes?: string[];
+  };
+};
+
+type DoctorCard = {
+  doctorId: string;
+  name: string;
+  role: string;
+  harga: number;
+  rating: number;
+  reviews: number;
+  tags: string[];
+  img: string;
+  mode: string;
+  exp: string;
+  online: boolean;
+  about: string;
+  slots: string[];
+};
+
+const FALLBACK_IMAGES = [
+  "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=400&q=80",
+  "https://images.unsplash.com/photo-1612349317150-e413f6a5b16d?w=400&q=80",
+  "https://images.unsplash.com/photo-1559839734-2b71ea197ec2?w=400&q=80",
+  "https://images.unsplash.com/photo-1582750433449-648ed127bb54?w=400&q=80",
+  "https://images.unsplash.com/photo-1551836022-d5d88e9218df?w=400&q=80",
+  "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&q=80",
+  "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=400&q=80",
+  "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=400&q=80",
+];
+
+const FALLBACK_TAGS = [
+  ["Anxiety", "Self-Love"],
+  ["Relationship", "Family"],
+  ["Trauma", "Depression"],
+  ["Burnout", "Growth"],
+];
+
+const FALLBACK_SLOTS = ["09:00", "11:00", "14:00", "16:00"];
+
+function toDoctorCard(doctor: ApiDoctor, index: number): DoctorCard {
+  const fallbackTags = FALLBACK_TAGS[index % FALLBACK_TAGS.length];
+  const experience = doctor.psychiatristInfo?.experience;
+
+  return {
+    doctorId: doctor._id,
+    name: doctor.name,
+    role: "Psikiater",
+    harga: 350000 + (index % 4) * 25000,
+    rating: 4.7 + (index % 3) * 0.1,
+    reviews: 50 + index * 7,
+    tags: fallbackTags,
+    img: FALLBACK_IMAGES[index % FALLBACK_IMAGES.length],
+    mode: "Online & Offline",
+    exp: `${experience ?? 5} Tahun`,
+    online: true,
+    about:
+      "Profesional kesehatan mental berlisensi yang siap membantu sesi konseling secara aman dan empatik.",
+    slots:
+      doctor.psychiatristInfo?.scheduleTimes &&
+      doctor.psychiatristInfo.scheduleTimes.length > 0
+        ? doctor.psychiatristInfo.scheduleTimes
+        : FALLBACK_SLOTS,
+  };
+}
 
 const FILTERS = [
   { label: "Semua", value: "all" },
@@ -159,12 +238,13 @@ const TAG_COLOR: Record<string, string> = {
 
 export default function ListPsikolog() {
   const router = useRouter();
+  const [doctors, setDoctors] = useState<DoctorCard[]>([]);
   const [query, setQuery] = useState("");
   const [modeFilter, setModeFilter] = useState("");
   const [activeFilter, setActiveFilter] = useState("all");
   const [sortKey, setSortKey] = useState("rating");
   const [displayed, setDisplayed] = useState(6);
-  const [modal, setModal] = useState<(typeof PSIKOLOG)[0] | null>(null);
+  const [modal, setModal] = useState<DoctorCard | null>(null);
   const [selectedSlot, setSelectedSlot] = useState("");
   const [toast, setToast] = useState({ msg: "", show: false });
 
@@ -178,7 +258,29 @@ export default function ListPsikolog() {
     router.push(`/bookingform?${params.toString()}`);
   };
 
-  const filtered = PSIKOLOG.filter((p) => {
+  useEffect(() => {
+    async function fetchDoctors() {
+      try {
+        const response = await fetch("/api/getdoctors", { cache: "no-store" });
+        if (!response.ok) {
+          throw new Error("Failed to fetch doctors");
+        }
+
+        const payload = (await response.json()) as { data?: ApiDoctor[] };
+        const fetchedDoctors = (payload.data ?? []).map((doctor, index) =>
+          toDoctorCard(doctor, index)
+        );
+        setDoctors(fetchedDoctors);
+      } catch {
+        setDoctors([]);
+        showToast("Gagal mengambil data dokter. Coba lagi.");
+      }
+    }
+
+    fetchDoctors();
+  }, []);
+
+  const filtered = doctors.filter((p) => {
     const matchTag = activeFilter === "all" || p.tags.includes(activeFilter);
     const matchQuery =
       !query ||
