@@ -48,6 +48,9 @@ export default class Message {
         const collection = await this.getRoomCollection();
         // const room = await collection.findOne({ _id: new ObjectId(roomId) });
         // return room;
+        if (!ObjectId.isValid(roomId)) {
+            throw new NotFoundError("Room not found");
+        }
         const room = await collection.aggregate([
             { $match: { _id: new ObjectId(roomId) } },
             { $lookup: {

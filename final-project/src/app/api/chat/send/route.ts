@@ -1,0 +1,30 @@
+import { NextRequest, NextResponse } from "next/server";
+import Pusher from "pusher"; // Gunakan 'pusher' (tanpa -js) jika di backend murni, 
+                                // tapi untuk Next.js Route Handler biasanya pakai library 'pusher' server-side.
+import PusherServer from "pusher";
+
+const pusher = new PusherServer({
+  appId: process.env.app_id!,
+  key: process.env.key!,
+  secret: process.env.secret!,
+  cluster: process.env.cluster!,
+  useTLS: true,
+});
+
+export async function POST(req: NextRequest) {
+  try {
+    const { message, senderName, chatId } = await req.json();
+
+    await pusher.trigger(chatId, "incoming-message", {
+      message,
+      senderName,
+      timestamp: new Date().toISOString(),
+    });
+
+    return NextResponse.json({ success: true });
+  } catch (error) {
+    return NextResponse.json({ error: "Gagal kirim" }, { status: 500 });
+  }
+}
+
+// tolong untk yang setup nnti variabelnya di samain aja yaa biar jalan contoh kayak !!chatId BUKAN roomId!!
