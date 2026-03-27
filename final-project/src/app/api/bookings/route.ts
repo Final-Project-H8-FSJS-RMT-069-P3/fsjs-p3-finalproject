@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
-// import { getDB } from "@/lib/db"; <-- import dari src yg bener
-// import { ObjectId } from "mongodb"; <-- import dari src yg bener
+import { getDB } from "../../../server/config/mongodb"; //<-- import dari src yg bener
+import { ObjectId } from "mongodb"; //<-- import dari src yg bener
 
 export async function POST(req: Request) {
   try {

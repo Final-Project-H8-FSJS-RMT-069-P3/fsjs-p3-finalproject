@@ -1,6 +1,6 @@
 import NextAuth from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
-// import { getDB } from "./db"; <--- import dari mongodb.ts
+import { getDB } from "../server/config/mongodb";
 import bcrypt from "bcryptjs";
 
 declare module "next-auth" {
