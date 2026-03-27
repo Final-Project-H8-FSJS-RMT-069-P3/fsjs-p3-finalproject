@@ -4,10 +4,10 @@ import Pusher from "pusher"; // Gunakan 'pusher' (tanpa -js) jika di backend mur
 import PusherServer from "pusher";
 
 const pusher = new PusherServer({
-  appId: process.env.app_id!,
-  key: process.env.key!,
-  secret: process.env.secret!,
-  cluster: process.env.cluster!,
+  appId: process.env.PUSHER_APP_ID!,
+  key: process.env.PUSHER_KEY!,
+  secret: process.env.PUSHER_SECRET!,
+  cluster: process.env.PUSHER_CLUSTER!,
   useTLS: true,
 });
 
