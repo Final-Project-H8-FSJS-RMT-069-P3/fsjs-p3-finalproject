@@ -1,24 +1,24 @@
-'use client'
+"use client";
 
-import { useRouter } from "next/navigation"
-import { FormEvent, useState } from "react"
-import Swal from "sweetalert2"
+import { useRouter } from "next/navigation";
+import { FormEvent, useState } from "react";
+import Swal from "sweetalert2";
 
 export default function RegisterForm() {
-  const [name, setName] = useState("")
-  const [email, setEmail] = useState("")
-  const [address, setAdress] = useState("")
-  const [phone, setPhone] = useState("")
-  const [password, setPassword] = useState("")
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [address, setAddress] = useState("");
+  const [phone, setPhone] = useState("");
+  const [password, setPassword] = useState("");
 
   const router = useRouter();
 
   async function handleRegister(e: FormEvent) {
-    e.preventDefault()
-    const response = await fetch('/api/auth/register', {
-      method: 'POST',
+    e.preventDefault();
+    const response = await fetch("/api/auth/register", {
+      method: "POST",
       headers: {
-        'Content-Type': 'application/json',
+        "Content-Type": "application/json",
       },
       body: JSON.stringify({
         name,
@@ -27,90 +27,121 @@ export default function RegisterForm() {
         phoneNumber: phone,
         password,
       }),
-    })
+    });
     if (!response.ok) {
       Swal.fire({
-        icon: 'error',
-        title: 'Registration Failed',
-        text: 'Please check your input and try again.',
-      })
-      return
+        icon: "error",
+        title: "Registration Failed",
+        text: "Please check your input and try again.",
+      });
+      return;
     }
     Swal.fire({
-      icon: 'success',
-      title: 'Registration Successful',
-      text: 'Your account has been created. You will be redirected to the homepage.',
+      icon: "success",
+      title: "Registration Successful",
+      text: "Your account has been created. You will be redirected to the homepage.",
     }).then(() => {
-      router.push('/')
-    })
+      router.push("/");
+    });
   }
 
   return (
-    <div className="">
-      <form 
-        className="flex flex-col justify-center w-1/3 h-1/2 mx-auto mt-10 gap-3 border p-12 rounded-lg"
-        onSubmit={handleRegister}
-      >
-        <h1 className="text-3xl text-center mb-10 font-bold">Register</h1>
-        <label htmlFor="name">Name:</label>
-        <input
-          type="text"
-          id="name"
-          name="name"
-          required
-          className="border p-2 rounded-sm"
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-        />
-        <label htmlFor="email">Email:</label>
-        <input
-          type="email"
-          id="email"
-          name="email"
-          required
-          className="border p-2 rounded-sm"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-        />
-        <label htmlFor="address">Address:</label>
-        <input
-          type="text"
-          id="address"
-          name="address"
-          required
-          className="border p-2 rounded-sm"
-          value={address}
-          onChange={(e) => setAdress(e.target.value)}
-        />
-        <label htmlFor="phone">Phone Number:</label>
-        <input
-          type="tel"
-          id="phone"
-          name="phone"
-          required
-          className="border p-2 rounded-sm"
-          value={phone}
-          onChange={(e) => setPhone(e.target.value)}
-        />
-        <label htmlFor="password">Password:</label>
-        <input
-          type="password"
-          id="password"
-          name="password"
-          required
-          autoComplete="off"
-          className="border p-2 rounded-sm"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-        />
-        <br />
-        <button
-          type="submit"
-          className="border bg-blue w-20 p-2 self-center bg-white text-blue-700 border-blue-700 rounded-lg hover:bg-blue-700 hover:text-white hover:border-white transition-all font-bold"
-        >
+    <div className="flex justify-center items-center min-h-screen bg-white">
+      <div className="w-3/4 max-w-md p-8 bg-white shadow-lg rounded-lg">
+        <h2 className="text-2xl font-bold text-green-600 mb-6 text-center">
           Sign up
-        </button>
-      </form>
+        </h2>
+
+        <form onSubmit={handleRegister}>
+          <div className="mb-4">
+            <label htmlFor="name" className="block text-sm mb-2">
+              Name
+            </label>
+            <input
+              type="text"
+              id="name"
+              name="name"
+              required
+              placeholder="Enter your name"
+              className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+            />
+          </div>
+
+          <div className="mb-4">
+            <label htmlFor="email" className="block text-sm mb-2">
+              Email
+            </label>
+            <input
+              type="email"
+              id="email"
+              name="email"
+              required
+              placeholder="Enter your email"
+              className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+            />
+          </div>
+
+          <div className="mb-4">
+            <label htmlFor="password" className="block text-sm mb-2">
+              Password
+            </label>
+            <input
+              type="password"
+              id="password"
+              name="password"
+              required
+              autoComplete="off"
+              placeholder="Enter your password"
+              className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+            />
+          </div>
+
+          <div className="mb-4">
+            <label htmlFor="phone" className="block text-sm mb-2">
+              Phone
+            </label>
+            <input
+              type="tel"
+              id="phone"
+              name="phone"
+              required
+              placeholder="Enter your phone number"
+              className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+              value={phone}
+              onChange={(e) => setPhone(e.target.value)}
+            />
+          </div>
+
+          <div className="mb-6">
+            <label htmlFor="address" className="block text-sm mb-2">
+              Address
+            </label>
+            <input
+              type="text"
+              id="address"
+              name="address"
+              required
+              placeholder="Enter your full address"
+              className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+              value={address}
+              onChange={(e) => setAddress(e.target.value)}
+            />
+          </div>
+
+          <button
+            type="submit"
+            className="w-full bg-green-600 text-white py-2 rounded-lg hover:bg-green-700 transition duration-300 font-bold"
+          >
+            Sign up
+          </button>
+        </form>
+      </div>
     </div>
-  )
+  );
 }

@@ -1,65 +1,1021 @@
-import Image from "next/image";
+"use client";
+
+import Navbar from "@/components/navbar";
+import { useState, useEffect } from "react";
+
+const PSYCHOLOGISTS = [
+  {
+    name: "Dina Amalia, M.Psi",
+    role: "Psikolog Klinis Dewasa",
+    harga: "399.000",
+    rating: "4.9",
+    reviews: "120+",
+    tags: ["Anxiety", "Depression", "Self-Love"],
+    img: "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=400&q=80",
+  },
+  {
+    name: "Rizky Putra, M.Psi",
+    role: "Psikolog Hubungan & Keluarga",
+    harga: "350.000",
+    rating: "5.0",
+    reviews: "85+",
+    tags: ["Relationship", "Family", "Trauma"],
+    img: "https://images.unsplash.com/photo-1612349317150-e413f6a5b16d?w=400&q=80",
+  },
+  {
+    name: "Sarah Wijaya, M.Psi",
+    role: "Psikolog Anak & Remaja",
+    harga: "320.000",
+    rating: "4.8",
+    reviews: "210+",
+    tags: ["Parenting", "Education", "Growth"],
+    img: "https://images.unsplash.com/photo-1559839734-2b71ea197ec2?w=400&q=80",
+  },
+  {
+    name: "Budi Santoso, M.Psi",
+    role: "Psikolog Klinis & Trauma",
+    harga: "375.000",
+    rating: "4.7",
+    reviews: "95+",
+    tags: ["Stress", "Burnout", "Work-Life"],
+    img: "https://images.unsplash.com/photo-1582750433449-648ed127bb54?w=400&q=80",
+  },
+  {
+    name: "Rina Kusuma, M.Psi",
+    role: "Psikolog Pernikahan & Keluarga",
+    harga: "410.000",
+    rating: "5.0",
+    reviews: "150+",
+    tags: ["Marriage", "Communication", "Conflict"],
+    img: "https://images.unsplash.com/photo-1551836022-d5d88e9218df?w=400&q=80",
+  },
+];
+
+const REVIEWS = [
+  {
+    text: "Sangat terbantu dengan sesi online-nya. Psikolognya sangat mendengarkan dan solutif. Platform yang sangat user-friendly.",
+    name: "Aditya Prasetyo",
+    type: "Klien Online",
+    initials: "A",
+    color: "bg-blue-900",
+  },
+  {
+    text: "Nyaman banget tempat konseling offline-nya di Jakarta. Berasa di sanctuary sendiri, tenang dan aman.",
+    name: "Maya Sari",
+    type: "Klien Offline",
+    initials: "M",
+    color: "bg-blue-200",
+    textColor: "text-blue-900",
+  },
+  {
+    text: "Psikolognya profesional dan tidak menghakimi. Sangat membantu saya melewati masa sulit.",
+    name: "Budi Santoso",
+    type: "Klien Online",
+    initials: "B",
+    color: "bg-orange-400",
+  },
+  {
+    text: "Booking mudah, jadwal fleksibel, dan psikolognya benar-benar kompeten. Highly recommended!",
+    name: "Siti Rahma",
+    type: "Klien Offline",
+    initials: "S",
+    color: "bg-purple-500",
+  },
+];
+
+const TABLE_ROWS = [
+  { feature: "Psikolog Klinis Berlisensi", us: true, other: "dash" },
+  { feature: "Pilihan Online & Offline", us: true, other: false },
+  { feature: "Sistem Matching Psikolog", us: true, other: "dash" },
+  { feature: "Privasi & Keamanan Data", us: true, other: true },
+];
+
+const FAQS = [
+  "Bagaimana cara booking sesi pertama saya?",
+  "Apakah identitas saya akan dijaga kerahasiaannya?",
+  "Apakah pendengarMu menerima asuransi?",
+  "Apa perbedaan psikolog dan psikiater?",
+];
+
+const FOOTER_COLS = [
+  {
+    title: "Layanan",
+    links: [
+      "Konseling Online",
+      "Konseling Offline",
+      "Counseling for Kids",
+      "Corporate Wellness",
+    ],
+  },
+  {
+    title: "Perusahaan",
+    links: ["Tentang Kami", "Lokasi Kami", "Karir", "Kontak"],
+  },
+  {
+    title: "Bantuan",
+    links: ["Kebijakan Privasi", "Syarat & Ketentuan", "FAQ", "Bantuan Refund"],
+  },
+];
+
+const cards = [
+  {
+    id: "offline",
+    type: "Konseling Offline",
+    imgSrc:
+      "https://i.pinimg.com/1200x/31/59/c8/3159c84f6346445fa11cc3d879348148.jpg",
+    reviews: "70+",
+    reviewSource: "Google Maps",
+    subtitle: "Rumah Bicara",
+    locations: ["Jakarta Barat", "Jakarta Selatan"],
+    features: [
+      "Ruangan konseling yang nyaman",
+      "Efektivitas konseling maksimal",
+      "Langsung bertemu psikolog & konseling tatap muka",
+      "Bisa melakukan test assessment & psikoterapi yang lengkap",
+    ],
+    originalPrice: 549000,
+    discount: 28,
+    finalPrice: 399000,
+    highlighted: false,
+  },
+  {
+    id: "online",
+    type: "Konseling Online",
+    imgSrc:
+      "https://i.pinimg.com/1200x/19/87/af/1987af8b782e8397fcdd88e22bb76895.jpg",
+    reviews: "779+",
+    reviewSource: "Google",
+    subtitle: "via Whatsapp atau Google Meet",
+    locations: null,
+    features: [
+      "Biaya lebih hemat",
+      "Jadwal tercepat <24 jam & tempat fleksible",
+      "Kamu bisa memilih untuk konseling via voice atau video call",
+      "Privasimu dijamin 100% aman",
+    ],
+    originalPrice: 349000,
+    discount: 28,
+    finalPrice: 249000,
+    highlighted: true,
+  },
+];
+
+function FaqItem({ question }: { question: string }) {
+  const [open, setOpen] = useState(false);
+  return (
+    <div
+      onClick={() => setOpen(!open)}
+      className="border border-blue-100 rounded-2xl p-6 hover:border-blue-300 transition-colors cursor-pointer group"
+    >
+      <div className="flex justify-between items-center">
+        <h4 className="font-bold text-lg text-gray-900 pr-4">{question}</h4>
+        <svg
+          className={`w-6 h-6 text-blue-900 transition-transform duration-200 ${
+            open ? "rotate-180" : ""
+          }`}
+          fill="none"
+          viewBox="0 0 24 24"
+        >
+          <path
+            d="M19 9l-7 7-7-7"
+            stroke="currentColor"
+            strokeWidth={2}
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+        </svg>
+      </div>
+      {open && (
+        <p className="mt-4 text-gray-500 text-sm leading-relaxed">
+          Hubungi tim kami melalui WhatsApp atau langsung booking via website.
+          Pilih psikolog, tentukan jadwal, dan lakukan pembayaran. Sesi akan
+          dimulai sesuai waktu yang dipilih.
+        </p>
+      )}
+    </div>
+  );
+}
 
 export default function Home() {
+  const [reviewIdx, setReviewIdx] = useState(0);
+  const [hoveredCard, setHoveredCard] = useState<string | null>(null);
+
+  useEffect(() => {
+    const style = document.createElement("style");
+    style.innerHTML = `
+      @keyframes scroll-left {
+        0%   { transform: translateX(0); }
+        100% { transform: translateX(-50%); }
+      }
+    `;
+    document.head.appendChild(style);
+    return () => {
+      document.head.removeChild(style);
+    };
+  }, []);
+
   return (
-    <div className="flex min-h-screen items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex min-h-screen w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
+    <>
+      <Navbar />
+      <main className="bg-white">
+        <section className="relative overflow-hidden bg-[#f8f9ff] py-20 lg:py-32">
+          <div className="max-w-7xl mx-auto px-6 grid lg:grid-cols-2 gap-12 items-center">
+            <div className="z-10">
+              <span className="inline-block py-1 px-4 rounded-full bg-blue-100 text-blue-700 text-xs font-bold uppercase tracking-wider mb-6">
+                #1 Psikolog Terpercaya di Indonesia
+              </span>
+              <h1 className="text-5xl lg:text-7xl font-black text-blue-900 leading-[1.1] tracking-tighter mb-6">
+                Bicarakan Masalahmu,{" "}
+                <span className="text-blue-600">Temukan Kedamaianmu.</span>
+              </h1>
+              <p className="text-lg text-gray-500 mb-10 max-w-xl leading-relaxed">
+                Akses layanan konseling psikologi profesional secara online
+                maupun offline dengan psikolog berlisensi yang siap mendengarkan
+                tanpa menghakimi.
+              </p>
+              <div className="flex flex-col sm:flex-row gap-4">
+                <button className="bg-orange-500 text-white px-8 py-4 rounded-xl font-bold text-lg shadow-lg hover:shadow-orange-200 hover:shadow-xl transition-all flex items-center justify-center gap-2 active:scale-95">
+                  <a href="/login">Konseling Sekarang</a>
+                  <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none">
+                    <path
+                      d="M14 5l7 7m0 0l-7 7m7-7H3"
+                      stroke="currentColor"
+                      strokeWidth={2}
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                  </svg>
+                </button>
+                <button className="bg-blue-800 text-white px-8 py-4 rounded-xl font-bold text-lg shadow-lg hover:bg-blue-700 transition-all active:scale-95">
+                  <a href="/listpsikolog">Lihat List Psikolog</a>
+                </button>
+              </div>
+              <div className="mt-10 flex items-center gap-4">
+                <div className="flex -space-x-3">
+                  {["A", "B", "C"].map((l, i) => (
+                    <div
+                      key={i}
+                      className={`w-10 h-10 rounded-full border-2 border-white flex items-center justify-center text-xs font-bold text-gray-600 ${
+                        i === 0
+                          ? "bg-blue-200"
+                          : i === 1
+                          ? "bg-purple-200"
+                          : "bg-pink-200"
+                      }`}
+                    >
+                      {l}
+                    </div>
+                  ))}
+                </div>
+                <p className="text-sm font-medium text-gray-500">
+                  <span className="font-bold text-blue-900">10.000+</span> Sesi
+                  Konseling Selesai
+                </p>
+              </div>
+            </div>
+            <div className="relative">
+              <div className="absolute -top-20 -right-20 w-96 h-96 bg-blue-100/30 rounded-full blur-3xl pointer-events-none" />
+              <div className="relative z-10 rounded-[2.5rem] overflow-hidden shadow-2xl rotate-2 aspect-[4/5] bg-gradient-to-br from-blue-100 to-blue-200">
+                <img
+                  src="https://i.pinimg.com/1200x/77/07/33/770733699f05aec6985da6bb637ce4c8.jpg"
+                  alt=""
+                  className="w-full h-full object-cover"
+                />
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section className="py-12 bg-white">
+          <div className="max-w-7xl mx-auto px-6">
+            <div className="grid md:grid-cols-3 gap-8">
+              {[
+                {
+                  title: "Bisa Online/Offline",
+                  desc: "Pilih kenyamananmu sendiri, via video call atau tatap muka langsung.",
+                  icon: (
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      d="M15 10l4.553-2.069A1 1 0 0121 8.87v6.26a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"
+                    />
+                  ),
+                },
+                {
+                  title: "Biaya Terjangkau",
+                  desc: "Kesehatan mental untuk semua dengan harga yang transparan dan kompetitif.",
+                  icon: (
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"
+                    />
+                  ),
+                },
+                {
+                  title: "Psikolog Terpercaya",
+                  desc: "Seluruh tim kami adalah psikolog klinis yang telah melewati seleksi ketat.",
+                  icon: (
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"
+                    />
+                  ),
+                },
+              ].map((item) => (
+                <div
+                  key={item.title}
+                  className="flex items-start gap-4 p-6 rounded-2xl hover:bg-blue-50/50 transition-colors group"
+                >
+                  <div className="w-14 h-14 shrink-0 rounded-2xl bg-blue-100 flex items-center justify-center text-blue-900 group-hover:scale-110 transition-transform">
+                    <svg
+                      className="w-7 h-7"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                      strokeWidth={1.8}
+                    >
+                      {item.icon}
+                    </svg>
+                  </div>
+                  <div>
+                    <h3 className="font-bold text-xl mb-1 text-gray-900">
+                      {item.title}
+                    </h3>
+                    <p className="text-gray-500 text-sm leading-relaxed">
+                      {item.desc}
+                    </p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        <section className="py-10 bg-white">
+          <div className="max-w-7xl mx-auto px-6">
+            <div className="text-center mb-16">
+              <h2 className="text-4xl font-black text-blue-900 tracking-tight mb-4">
+                Temukan Psikolog yang Tepat
+              </h2>
+              <p className="text-gray-500 max-w-2xl mx-auto">
+                Pilih partner berceritamu berdasarkan spesialisasi dan jadwal
+                yang sesuai dengan kebutuhanmu.
+              </p>
+            </div>
+
+            <div className="overflow-hidden" style={{}}>
+              <div
+                className="flex gap-8 w-max"
+                style={{ animation: "scroll-left 30s linear infinite" }}
+                onMouseEnter={(e) =>
+                  (e.currentTarget.style.animationPlayState = "paused")
+                }
+                onMouseLeave={(e) =>
+                  (e.currentTarget.style.animationPlayState = "running")
+                }
+              >
+                {[...PSYCHOLOGISTS, ...PSYCHOLOGISTS].map((p, idx) => (
+                  <div
+                    key={idx}
+                    className="w-72 shrink-0 bg-white rounded-[2rem] overflow-hidden group shadow-sm hover:shadow-xl transition-all duration-300 border border-transparent hover:border-blue-100"
+                  >
+                    <div className="relative h-64 overflow-hidden bg-gray-100">
+                      <img
+                        src={p.img}
+                        alt={p.name}
+                        className="w-full h-full object-cover object-top group-hover:scale-105 transition-transform duration-500"
+                      />
+                      <div className="absolute top-4 right-4 bg-white/90 backdrop-blur-sm px-3 py-1 rounded-full text-xs font-bold text-blue-900 flex items-center gap-1">
+                        <svg
+                          className="w-4 h-4 text-yellow-400"
+                          viewBox="0 0 24 24"
+                          fill="currentColor"
+                        >
+                          <path d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
+                        </svg>
+                        {p.rating} ({p.reviews})
+                      </div>
+                    </div>
+                    <div className="p-8">
+                      <h3 className="text-xl font-bold text-blue-900 mb-1">
+                        {p.name}
+                      </h3>
+                      <p className="text-sm text-gray-500 mb-4">{p.role}</p>
+                      <div className="flex flex-wrap gap-2 mb-6">
+                        {p.tags.map((t) => (
+                          <span
+                            key={t}
+                            className="text-[10px] font-bold py-1 px-3 bg-blue-50 text-blue-900 rounded-full uppercase tracking-wider"
+                          >
+                            {t}
+                          </span>
+                        ))}
+                      </div>
+                      <button className="w-full py-3 bg-blue-900 text-white font-bold rounded-xl hover:bg-blue-800 transition-colors active:scale-95">
+                        Booking Jadwal
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+            <div className="mt-12 text-center">
+              <a
+                href="#"
+                className="text-blue-900 font-bold hover:underline flex items-center justify-center gap-2 text-base"
+              >
+                Lihat Semua Psikolog Kami
+                <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none">
+                  <path
+                    d="M14 5l7 7m0 0l-7 7m7-7H3"
+                    stroke="currentColor"
+                    strokeWidth={2}
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </svg>
+              </a>
+            </div>
+          </div>
+        </section>
+
+        <section className="py-20 bg-white overflow-hidden">
+          <div className="max-w-7xl mx-auto px-6">
+            <div className="flex flex-col md:flex-row items-center gap-12">
+              <div className="md:w-1/3">
+                <div className="inline-flex items-center gap-2 mb-4 bg-yellow-50 text-yellow-700 px-4 py-1.5 rounded-full font-bold text-sm">
+                  <svg
+                    className="w-4 h-4 text-yellow-400"
+                    viewBox="0 0 24 24"
+                    fill="currentColor"
+                  >
+                    <path d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
+                  </svg>
+                  Google Review
+                </div>
+                <h2 className="text-4xl font-black text-blue-900 tracking-tight mb-4">
+                  1.379+ Review 5-Stars
+                </h2>
+                <p className="text-gray-500 leading-relaxed">
+                  Kepercayaan Anda adalah prioritas kami. Simak apa yang mereka
+                  katakan setelah berkonsultasi dengan tim pendengarMu.
+                </p>
+
+                <div className="mt-8 flex gap-2">
+                  <button
+                    onClick={() => setReviewIdx(Math.max(0, reviewIdx - 1))}
+                    disabled={reviewIdx === 0}
+                    className="w-12 h-12 rounded-full border border-gray-200 flex items-center justify-center text-blue-900 hover:bg-blue-900 hover:text-white transition-all disabled:opacity-30 disabled:cursor-not-allowed"
+                  >
+                    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24">
+                      <path
+                        d="M15 19l-7-7 7-7"
+                        stroke="currentColor"
+                        strokeWidth={2}
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      />
+                    </svg>
+                  </button>
+                  <button
+                    onClick={() =>
+                      setReviewIdx(Math.min(REVIEWS.length - 2, reviewIdx + 1))
+                    }
+                    disabled={reviewIdx >= REVIEWS.length - 2}
+                    className="w-12 h-12 rounded-full border border-gray-200 flex items-center justify-center text-blue-900 hover:bg-blue-900 hover:text-white transition-all disabled:opacity-30 disabled:cursor-not-allowed"
+                  >
+                    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24">
+                      <path
+                        d="M9 5l7 7-7 7"
+                        stroke="currentColor"
+                        strokeWidth={2}
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      />
+                    </svg>
+                  </button>
+                </div>
+
+                <div className="mt-4 flex gap-2">
+                  {Array.from({ length: REVIEWS.length - 1 }).map((_, i) => (
+                    <button
+                      key={i}
+                      onClick={() => setReviewIdx(i)}
+                      className={`h-2 rounded-full transition-all duration-300 ${
+                        reviewIdx === i ? "w-6 bg-blue-900" : "w-2 bg-gray-300"
+                      }`}
+                    />
+                  ))}
+                </div>
+              </div>
+
+              <div className="md:w-2/3 flex gap-6 overflow-hidden">
+                {REVIEWS.slice(reviewIdx, reviewIdx + 2).map((r, i) => (
+                  <div
+                    key={reviewIdx + i}
+                    className="w-full md:w-80 shrink-0 bg-blue-50 p-8 rounded-[2rem] transition-all duration-300"
+                  >
+                    <div className="flex gap-1 mb-4">
+                      {[1, 2, 3, 4, 5].map((s) => (
+                        <svg
+                          key={s}
+                          className="w-4 h-4 text-yellow-400"
+                          viewBox="0 0 24 24"
+                          fill="currentColor"
+                        >
+                          <path d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
+                        </svg>
+                      ))}
+                    </div>
+                    <p className="italic text-gray-700 mb-6">"{r.text}"</p>
+                    <div className="flex items-center gap-3">
+                      <div
+                        className={`w-10 h-10 rounded-full ${r.color} ${
+                          r.textColor || "text-white"
+                        } flex items-center justify-center font-bold`}
+                      >
+                        {r.initials}
+                      </div>
+                      <div>
+                        <p className="font-bold text-sm text-gray-900">
+                          {r.name}
+                        </p>
+                        <p className="text-xs text-gray-400">{r.type}</p>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section className="py-12 border-y border-gray-100 bg-white">
+          <div className="max-w-7xl mx-auto px-6 mb-10">
+            <p className="text-center text-sm font-bold text-gray-700 uppercase tracking-widest">
+              Telah Diulas &amp; Dipercaya Oleh
+            </p>
+          </div>
+
+          <div
+            className="overflow-hidden group"
+            style={{
+              maskImage:
+                "linear-gradient(to right, transparent, black 15%, black 85%, transparent)",
+              WebkitMaskImage:
+                "linear-gradient(to right, transparent, black 15%, black 85%, transparent)",
+            }}
+          >
+            <div
+              className="flex items-center gap-16 w-max"
+              style={{ animation: "scroll-left 25s linear infinite" }}
             >
-              Templates
-            </a>{" "}
-            or the{" "}
+              {[...Array(2)].flatMap((_, repeat) =>
+                [
+                  {
+                    src: "https://2qs5yuwadb.ucarecd.net/bdebf6ee-2f2e-4826-8fc8-7b60775bc4b6/Logo_Kompasdotcomtransparan.png",
+                    alt: "Kompas.com",
+                    w: "w-24",
+                  },
+                  {
+                    src: "https://2qs5yuwadb.ucarecd.net/4d84beb7-229e-47d9-82da-2f07eee9e2b2/idntimes.png",
+                    alt: "IDN Times",
+                    w: "w-24",
+                  },
+                  {
+                    src: "https://2qs5yuwadb.ucarecd.net/f7c801b1-cff7-49cb-b25e-1e80f49495ff/XBEsKIzEGjAPf6K6TFBNs1v3P8_TWZpX36VPde31_2XJIOT4W4aIgbGvjJPp20kK7D0.png",
+                    alt: "Detik.com",
+                    w: "w-24",
+                  },
+                  {
+                    src: "https://2qs5yuwadb.ucarecd.net/89b430a6-d98b-4334-a6a4-bdc43470d0f7/liputan6.png",
+                    alt: "Liputan6",
+                    w: "w-24",
+                  },
+                  {
+                    src: "https://www.hacktiv8.com/_next/image?url=%2Flogo.png&w=1920&q=75",
+                    alt: "Hacktiv8",
+                    w: "w-28",
+                  },
+                ].map((logo, i) => (
+                  <img
+                    key={`${repeat}-${i}`}
+                    src={logo.src}
+                    alt={logo.alt}
+                    className={`${logo.w} h-8 object-contain opacity-40 group-hover:opacity-100 grayscale group-hover:grayscale-0 transition-all duration-500 shrink-0`}
+                  />
+                ))
+              )}
+            </div>
+          </div>
+        </section>
+
+        <section className="py-24 bg-[#f8f9ff]">
+          <div className="flex flex-col items-center px-4 py-8">
+            <p className="text-blue-600 font-semibold text-sm uppercase tracking-widest mb-3">
+              Layanan pendengarMu
+            </p>
+            <h1 className="text-3xl md:text-4xl font-extrabold text-gray-900 text-center mb-10 max-w-lg">
+              Pilih medium konseling yang nyaman untukmu
+            </h1>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-3xl w-full">
+              {cards.map((card) => (
+                <div
+                  key={card.id}
+                  onMouseEnter={() => setHoveredCard(card.id)}
+                  onMouseLeave={() => setHoveredCard(null)}
+                  className={`relative rounded-2xl bg-white flex flex-col overflow-hidden border-2 transition-all duration-300 cursor-pointer
+                    ${
+                      card.highlighted
+                        ? "border-blue-500 shadow-2xl shadow-blue-100 scale-[1.02]"
+                        : "border-gray-200 shadow-lg hover:border-blue-400 hover:shadow-xl hover:scale-[1.01]"
+                    }`}
+                >
+                  <div className="absolute top-4 right-4 z-10 bg-blue-600 text-white text-xs font-bold px-2.5 py-1 rounded-full shadow-md">
+                    -{card.discount}%
+                  </div>
+                  <div className="h-52 overflow-hidden bg-blue-50">
+                    <img
+                      src={card.imgSrc}
+                      alt={card.type}
+                      className={`w-full h-full object-cover transition-transform duration-500 ${
+                        hoveredCard === card.id ? "scale-105" : "scale-100"
+                      }`}
+                    />
+                  </div>
+                  <div className="flex flex-col flex-1 p-6 gap-4">
+                    <div className="text-center">
+                      <h2 className="text-xl font-bold text-gray-900 mb-1">
+                        {card.type}
+                      </h2>
+                      <div className="flex items-center justify-center gap-1 mb-1">
+                        {[...Array(5)].map((_, i) => (
+                          <svg
+                            key={i}
+                            viewBox="0 0 20 20"
+                            className="w-4 h-4"
+                            fill="#F59E0B"
+                          >
+                            <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                          </svg>
+                        ))}
+                        <span className="text-sm text-gray-500 ml-1">
+                          ({card.reviews} Reviews di{" "}
+                          <span className="text-blue-500 font-medium">
+                            {card.reviewSource}
+                          </span>
+                          )
+                        </span>
+                      </div>
+                      <p className="text-sm text-gray-500">{card.subtitle}</p>
+                      {card.locations && (
+                        <div className="flex items-center justify-center gap-3 mt-1 text-sm text-gray-600">
+                          {card.locations.map((loc) => (
+                            <span key={loc}>
+                              <svg
+                                viewBox="0 0 24 24"
+                                className="w-3.5 h-3.5 inline mr-0.5"
+                                fill="#EF4444"
+                              >
+                                <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z" />
+                              </svg>
+                              {loc}
+                            </span>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                    <div className="border-t border-gray-100" />
+                    <ul className="flex flex-col gap-3 flex-1">
+                      {card.features.map((f) => (
+                        <li
+                          key={f}
+                          className="flex items-start gap-3 text-sm text-gray-700 leading-snug"
+                        >
+                          <svg
+                            viewBox="0 0 24 24"
+                            className="w-5 h-5 flex-shrink-0"
+                            fill="none"
+                          >
+                            <circle
+                              cx="12"
+                              cy="12"
+                              r="11"
+                              fill="#EEF4FF"
+                              stroke="#3B82F6"
+                              strokeWidth="1.5"
+                            />
+                            <path
+                              d="M7.5 12l3 3 6-6"
+                              stroke="#3B82F6"
+                              strokeWidth="2"
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                            />
+                          </svg>
+                          <span>{f}</span>
+                        </li>
+                      ))}
+                    </ul>
+                    <div className="mt-2 text-center">
+                      <div className="flex items-center justify-center gap-3 mb-0.5">
+                        <span className="text-sm text-gray-400 line-through">
+                          Rp{card.originalPrice.toLocaleString("id-ID")}
+                        </span>
+                        <span className="text-xs font-semibold text-red-500 bg-red-50 px-1.5 py-0.5 rounded">
+                          -{card.discount}%
+                        </span>
+                      </div>
+                      <div className="flex items-end justify-center gap-1">
+                        <span className="text-3xl font-extrabold text-blue-600 tracking-tight">
+                          Rp{card.finalPrice.toLocaleString("id-ID")}
+                        </span>
+                        <span className="text-sm text-gray-500 mb-1">/jam</span>
+                      </div>
+                    </div>
+                    <button className="w-full py-3.5 rounded-xl font-bold text-base bg-blue-600 text-white hover:bg-blue-700 hover:shadow-lg hover:shadow-blue-200 active:scale-95 transition-all duration-200">
+                      Booking Sekarang
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        <section className="py-24 bg-white">
+          <div className="max-w-4xl mx-auto px-6">
+            <h2 className="text-4xl font-black text-center text-blue-900 mb-16 tracking-tight">
+              Mengapa pendengarMu?
+            </h2>
+            <div className="overflow-hidden rounded-[2rem] border border-gray-100 shadow-lg">
+              <table className="w-full text-left border-collapse">
+                <thead>
+                  <tr className="bg-blue-50">
+                    <th className="p-6 text-blue-900 font-black uppercase text-xs tracking-widest">
+                      Fitur Layanan
+                    </th>
+                    <th className="p-6 text-blue-900 font-black text-center bg-blue-100/50">
+                      pendengarMu
+                    </th>
+                    <th className="p-6 text-gray-400 font-black text-center">
+                      Lainnya
+                    </th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-100">
+                  {TABLE_ROWS.map((row) => (
+                    <tr
+                      key={row.feature}
+                      className="hover:bg-gray-50/50 transition-colors"
+                    >
+                      <td className="p-6 font-medium text-gray-700">
+                        {row.feature}
+                      </td>
+                      <td className="p-6 text-center">
+                        <svg
+                          className="w-5 h-5 text-green-500 mx-auto"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                        >
+                          <path
+                            d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+                            stroke="currentColor"
+                            strokeWidth={2}
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                          />
+                        </svg>
+                      </td>
+                      <td className="p-6 text-center">
+                        {row.other === true ? (
+                          <svg
+                            className="w-5 h-5 text-green-500 mx-auto"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                          >
+                            <path
+                              d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+                              stroke="currentColor"
+                              strokeWidth={2}
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                            />
+                          </svg>
+                        ) : row.other === false ? (
+                          <svg
+                            className="w-5 h-5 text-red-500 mx-auto"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                          >
+                            <path
+                              d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"
+                              stroke="currentColor"
+                              strokeWidth={2}
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                            />
+                          </svg>
+                        ) : (
+                          <svg
+                            className="w-5 h-5 text-gray-400 mx-auto"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                          >
+                            <path
+                              d="M20 12H4"
+                              stroke="currentColor"
+                              strokeWidth={2}
+                              strokeLinecap="round"
+                            />
+                          </svg>
+                        )}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <section className="py-24 bg-blue-50/50">
+          <div className="max-w-7xl mx-auto px-6">
+            <h2 className="text-4xl font-black text-center text-blue-900 mb-20 tracking-tight">
+              3 Langkah Menuju Bahagia
+            </h2>
+            <div className="grid md:grid-cols-3 gap-12 relative">
+              <div className="hidden md:block absolute top-10 left-[calc(16.67%+2.5rem)] right-[calc(16.67%+2.5rem)] h-0.5 border-t-2 border-dashed border-blue-200 z-0" />
+              {[
+                {
+                  n: "1",
+                  title: "Pilih Layanan",
+                  desc: "Pilih psikolog dan jadwal yang sesuai dengan preferensimu.",
+                },
+                {
+                  n: "2",
+                  title: "Bicara dengan Psikolog",
+                  desc: "Sampaikan apa yang kamu rasakan dalam sesi yang aman.",
+                },
+                {
+                  n: "3",
+                  title: "Sembuh & Bertumbuh",
+                  desc: "Dapatkan insight dan tools untuk hidup yang lebih berkualitas",
+                },
+              ].map((s) => (
+                <div
+                  key={s.n}
+                  className="relative z-10 text-center flex flex-col items-center"
+                >
+                  <div className="w-20 h-20 rounded-full bg-blue-800 text-white flex items-center justify-center font-black text-2xl mb-8 shadow-lg shadow-blue-200">
+                    {s.n}
+                  </div>
+                  <h3 className="text-2xl font-bold mb-4 text-gray-900">
+                    {s.title}
+                  </h3>
+                  <p className="text-gray-500">{s.desc}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        <section className="py-24 bg-white">
+          <div className="max-w-3xl mx-auto px-6">
+            <h2 className="text-4xl font-black text-center text-blue-900 mb-16 tracking-tight">
+              Pertanyaan Populer
+            </h2>
+            <div className="space-y-4">
+              {FAQS.map((q) => (
+                <FaqItem key={q} question={q} />
+              ))}
+            </div>
+          </div>
+        </section>
+
+        <section className="py-24 bg-blue-900 relative overflow-hidden">
+          <div className="absolute top-0 left-0 w-96 h-96 bg-white/10 rounded-full -translate-x-1/2 -translate-y-1/2 pointer-events-none" />
+          <div className="absolute bottom-0 right-0 w-96 h-96 bg-white/10 rounded-full translate-x-1/2 translate-y-1/2 pointer-events-none" />
+          <div className="max-w-4xl mx-auto px-6 text-center relative z-10">
+            <h2 className="text-4xl lg:text-6xl font-black text-white mb-8 tracking-tighter leading-tight">
+              Mulai Perjalanan Kesehatan Mentalmu Hari Ini
+            </h2>
+            <p className="text-blue-200 text-xl mb-12 max-w-2xl mx-auto">
+              Jangan menunggu sampai kewalahan. Psikolog kami siap membantu
+              kapan pun kamu membutuhkan teman bicara.
+            </p>
+            <div className="flex flex-col sm:flex-row justify-center gap-6">
+              <button className="bg-orange-500 text-white px-10 py-5 rounded-2xl font-bold text-xl shadow-2xl hover:scale-105 transition-transform active:scale-95">
+                Booking Sekarang
+              </button>
+              <button className="bg-white text-blue-900 px-10 py-5 rounded-2xl font-bold text-xl shadow-2xl hover:scale-105 transition-transform active:scale-95">
+                Konsultasi Gratis via Chat
+              </button>
+            </div>
+          </div>
+        </section>
+      </main>
+
+      <footer className="bg-gray-50 border-t border-gray-100">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-12 px-8 py-16 max-w-7xl mx-auto text-sm text-gray-500">
+          <div className="md:col-span-1">
             <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
+              href="#"
+              className="text-3xl font-black text-blue-900 mb-4 block tracking-tighter"
             >
-              Learning
-            </a>{" "}
-            center.
+              pendengarMu
+            </a>
+            <p className="leading-relaxed mb-6">
+              Partner terpercaya untuk kesehatan mental Anda. Menghubungkan Anda
+              dengan profesional berlisensi secara mudah dan terjangkau.
+            </p>
+            <div className="flex gap-4">
+              {[
+                <svg
+                  key="ig"
+                  className="w-5 h-5"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <rect
+                    x="2"
+                    y="2"
+                    width="20"
+                    height="20"
+                    rx="5"
+                    strokeWidth={1.5}
+                  />
+                  <path
+                    d="M16 11.37A4 4 0 1112.63 8 4 4 0 0116 11.37z"
+                    strokeWidth={1.5}
+                  />
+                  <circle cx="17.5" cy="6.5" r=".5" fill="currentColor" />
+                </svg>,
+                <svg
+                  key="tw"
+                  className="w-5 h-5"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    d="M23 3a10.9 10.9 0 01-3.14 1.53 4.48 4.48 0 00-7.86 3v1A10.66 10.66 0 013 4s-4 9 5 13a11.64 11.64 0 01-7 2c9 5 20 0 20-11.5a4.5 4.5 0 00-.08-.83A7.72 7.72 0 0023 3z"
+                    strokeWidth={1.5}
+                  />
+                </svg>,
+                <svg
+                  key="em"
+                  className="w-5 h-5"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"
+                    strokeWidth={1.5}
+                  />
+                  <polyline points="22,6 12,13 2,6" strokeWidth={1.5} />
+                </svg>,
+              ].map((icon, i) => (
+                <a
+                  key={i}
+                  href="#"
+                  className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-900 hover:bg-blue-900 hover:text-white transition-all"
+                >
+                  {icon}
+                </a>
+              ))}
+            </div>
+          </div>
+          {FOOTER_COLS.map((col) => (
+            <div key={col.title}>
+              <h4 className="font-bold text-blue-900 mb-6 text-base">
+                {col.title}
+              </h4>
+              <ul className="space-y-4">
+                {col.links.map((l) => (
+                  <li key={l}>
+                    <a
+                      href="#"
+                      className="text-gray-400 hover:text-blue-700 hover:underline underline-offset-4 transition-all"
+                    >
+                      {l}
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ))}
+        </div>
+        <div className="max-w-7xl mx-auto px-8 py-6 border-t border-gray-100 text-center">
+          <p className="text-gray-400 text-xs">
+            © 2024 pendengarMu. Hak Cipta Dilindungi.
           </p>
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
-      </main>
-    </div>
+      </footer>
+    </>
   );
 }
