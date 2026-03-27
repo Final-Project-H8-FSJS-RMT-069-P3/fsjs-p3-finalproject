@@ -26,7 +26,7 @@ export interface IUser {
 export default class User {
     static async getCollection() {
         const db = await getDB();
-        const collection = db.collection<IUser>("users");
+        const collection = db.collection<IUser>("Users");
         return collection;
     }
 
@@ -72,5 +72,11 @@ export default class User {
         };
         const token = signToken(payload);
         return token;
+    }
+
+    static async getAllPsychiatrists(): Promise<WithId<IUser>[]> {
+        const collection = await this.getCollection();
+        const psychiatrists = await collection.find({ role: "psychiatrist" }).toArray();
+        return psychiatrists;
     }
 }

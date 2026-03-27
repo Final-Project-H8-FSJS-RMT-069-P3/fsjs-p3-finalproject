@@ -1,5 +1,5 @@
-// import { ObjectId } from "mongodb";
-// import { getDB } from "../config/mongodb";
+import { ObjectId } from "mongodb";
+import { getDB } from "../config/mongodb";
 // disesuikan aja nnti dengan setup nya yaa 
 
 //yang di comment itu intinya untuk menggunakan ObjectId dari MongoDB, 
@@ -14,7 +14,7 @@ export interface IOrderItem {
 }
 
 export interface IOrder {
-  // _id?: ObjectId;
+  _id?: ObjectId;
   userId: string;
   orderId: string;
   items: IOrderItem[];
@@ -30,15 +30,15 @@ export interface IOrder {
 }
 
 export default class Order {
-  static getCollection() {
-    const db = getDB();
+  static async getCollection() {
+    const db = await getDB();
     return db.collection<IOrder>("orders");
   }
 
   static async createOrder(
     payload: Omit<IOrder, "_id" | "createdAt" | "updatedAt">,
   ) {
-    const collection = this.getCollection();
+    const collection = await this.getCollection();
 
     const newOrder: Omit<IOrder, "_id"> = {
       ...payload,
@@ -55,7 +55,7 @@ export default class Order {
   }
 
   static async getOrdersByUserId(userId: string) {
-    const collection = this.getCollection();
+    const collection = await this.getCollection();
 
     const orders = await collection
       .find({ userId })
@@ -66,7 +66,7 @@ export default class Order {
   }
 
   static async getOrderById(orderId: string) {
-    const collection = this.getCollection();
+    const collection = await this.getCollection();
 
     const order = await collection.findOne({ orderId });
 
@@ -77,7 +77,7 @@ export default class Order {
     orderId: string,
     status: "pending" | "success" | "failed",
   ) {
-    const collection = this.getCollection();
+    const collection = await this.getCollection();
 
     const result = await collection.updateOne(
       { orderId },
