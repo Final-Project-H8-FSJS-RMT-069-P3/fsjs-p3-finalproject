@@ -42,6 +42,13 @@ export default function Navbar() {
           >
             Konsultasi
           </a>
+          <a
+            key="bookinglist"
+            href="/bookinglist"
+            className="block py-3 text-sm font-medium text-gray-600 border-b border-gray-50"
+          >
+          list booking
+          </a>
           {session ? (
             <button
               onClick={() => signOut({callbackUrl: '/login'})}
@@ -104,6 +111,13 @@ export default function Navbar() {
             className="block py-3 text-sm font-medium text-gray-600 border-b border-gray-50"
           >
           Konsultasi
+          </a>
+          <a
+            key="bookinglist"
+            href="/bookinglist"
+            className="block py-3 text-sm font-medium text-gray-600 border-b border-gray-50"
+          >
+          list booking
           </a>
           {session ? (
             <button

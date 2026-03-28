@@ -1,20 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
 import midtransClient from "midtrans-client"
-import { cookies } from "next/headers";
-import { verifyToken } from "@/helpers/jwt";
+import { auth } from "@/lib/auth";
 
 export async function POST(request: NextRequest) {
   try {
-    const cookieStore = await cookies();
-    const token = cookieStore.get("access_token");
-
-    if (!token) {
+    const session = await auth();
+    if (!session || !session.user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
-    const decoded = verifyToken(token.value);
-    if (!decoded) {
-      return NextResponse.json({ error: "Invalid token" }, { status: 401 });
     }
 
     const body = await request.json();

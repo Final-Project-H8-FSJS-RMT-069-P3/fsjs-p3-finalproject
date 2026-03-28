@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
-// import { getDB } from "@/lib/db"; <-- import dari src yg bener
+import { getDB } from "@/server/config/mongodb";
 import { RtcTokenBuilder, RtcRole } from "agora-token";
 
 const APP_ID = process.env.AGORA_APP_ID!;
