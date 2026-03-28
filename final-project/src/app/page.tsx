@@ -525,6 +525,7 @@ export default function Home() {
                         "
                         >
                           <a href="/listpsikolog">Booking Jadwal</a>
+                          <Link href="/listpsikolog">Booking Jadwal</Link>
                         </button>
                       </div>
                     </div>

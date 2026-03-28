@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import midtransClient from "midtrans-client"
 import { auth } from "@/lib/auth";
+import Order from "@/server/models/Order";
 
 export async function POST(request: NextRequest) {
   try {
@@ -10,7 +11,7 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { orderId, grossAmount, items, customerDetails } = body;
+    const { orderId, bookingId, grossAmount, items, customerDetails } = body;
 
     // Create Snap API instance
     const snap = new midtransClient.Snap({
@@ -29,9 +30,22 @@ export async function POST(request: NextRequest) {
       credit_card: {
         secure: true,
       },
+      finish_redirect_url: `${process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000"}/bookinglist`,
     };
 
     const transaction = await snap.createTransaction(parameter);
+
+    // Create Order record in database
+    await Order.createOrder({
+      userId: session.user.id,
+      orderId,
+      bookingId,
+      items,
+      totalAmount: grossAmount,
+      status: "pending",
+      paymentToken: transaction.token,
+      customerDetails,
+    });
 
     return NextResponse.json({
       token: transaction.token,

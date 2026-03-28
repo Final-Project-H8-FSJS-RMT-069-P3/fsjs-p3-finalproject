@@ -1,6 +1,7 @@
 "use client";
 
 import Navbar from "@/components/navbar";
+import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { StartSessionButton } from "./StartSessionButton";
 
@@ -164,15 +165,18 @@ export default function BookingListPage() {
                           {formatAmount(booking.amount)}
                         </td>
                         <td className="px-4 py-3">
-                          <span
-                            className={`inline-flex rounded-full px-2.5 py-1 text-xs font-semibold ${
-                              booking.isPaid
-                                ? "bg-green-100 text-green-700"
-                                : "bg-amber-100 text-amber-700"
-                            }`}
-                          >
-                            {booking.isPaid ? "Paid" : "Unpaid"}
-                          </span>
+                          {booking.isPaid ? (
+                            <span className="inline-flex rounded-full bg-green-100 px-2.5 py-1 text-xs font-semibold text-green-700">
+                              Paid
+                            </span>
+                          ) : (
+                            <Link
+                              href={`/payment?amount=${booking.amount}&itemId=CONSULT-${booking._id}&itemName=Sesi Konseling&orderId=ORDER-${booking._id}&bookingId=${booking._id}`}
+                              className="inline-flex rounded-full bg-amber-100 px-2.5 py-1 text-xs font-semibold text-amber-700 transition-colors hover:bg-amber-200"
+                            >
+                              Unpaid
+                            </Link>
+                          )}
                         </td>
                         <td className="px-4 py-3">
                           <span
