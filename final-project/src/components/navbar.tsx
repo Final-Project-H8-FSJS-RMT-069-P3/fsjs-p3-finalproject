@@ -54,9 +54,9 @@ export default function Navbar() {
           <Link
             key="bookinglist"
             href="/bookinglist"
-            className="block py-3 text-sm font-medium text-gray-600 border-b border-gray-50"
+            className="text-gray-500 hover:text-blue-700 transition-colors"
           >
-          list booking
+          List booking
           </Link>
           {session ? (
             <button
@@ -126,7 +126,7 @@ export default function Navbar() {
             href="/bookinglist"
             className="block py-3 text-sm font-medium text-gray-600 border-b border-gray-50"
           >
-          list booking
+          List booking
           </Link>
           {session ? (
             <button
