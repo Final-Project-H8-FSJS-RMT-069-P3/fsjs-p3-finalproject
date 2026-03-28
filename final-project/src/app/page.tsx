@@ -3,6 +3,7 @@
 import Navbar from "@/components/navbar";
 import { useState, useEffect } from "react";
 
+/*
 const PSYCHOLOGISTS = [
   {
     name: "Dina Amalia, M.Psi",
@@ -50,6 +51,41 @@ const PSYCHOLOGISTS = [
     img: "https://images.unsplash.com/photo-1551836022-d5d88e9218df?w=400&q=80",
   },
 ];
+*/
+
+type ApiDoctor = {
+  _id: string;
+  name: string;
+  psychiatristInfo?: {
+    certificate?: string;
+    experience?: number;
+    scheduleDays?: string[];
+  };
+};
+
+type DoctorCard = {
+  _id: string;
+  name: string;
+  role: string;
+  rating: string;
+  reviews: string;
+  tags: string[];
+  img: string;
+};
+
+type GetDoctorsResponse = {
+  data?: ApiDoctor[];
+};
+
+const DEFAULT_DOCTOR_IMAGES = [
+  "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=400&q=80",
+  "https://images.unsplash.com/photo-1612349317150-e413f6a5b16d?w=400&q=80",
+  "https://images.unsplash.com/photo-1559839734-2b71ea197ec2?w=400&q=80",
+  "https://images.unsplash.com/photo-1582750433449-648ed127bb54?w=400&q=80",
+  "https://images.unsplash.com/photo-1551836022-d5d88e9218df?w=400&q=80",
+];
+
+const DEFAULT_DOCTOR_TAGS = ["Konseling", "Mental Health", "Terpercaya"];
 
 const REVIEWS = [
   {
@@ -199,6 +235,8 @@ function FaqItem({ question }: { question: string }) {
 export default function Home() {
   const [reviewIdx, setReviewIdx] = useState(0);
   const [hoveredCard, setHoveredCard] = useState<string | null>(null);
+  const [doctors, setDoctors] = useState<DoctorCard[]>([]);
+  const [isDoctorsLoading, setIsDoctorsLoading] = useState(true);
 
   useEffect(() => {
     const style = document.createElement("style");
@@ -211,6 +249,58 @@ export default function Home() {
     document.head.appendChild(style);
     return () => {
       document.head.removeChild(style);
+    };
+  }, []);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    const fetchDoctors = async () => {
+      try {
+        const response = await fetch("/api/getdoctors", { cache: "no-store" });
+
+        if (!response.ok) {
+          throw new Error("Failed to fetch doctors");
+        }
+
+        const result: GetDoctorsResponse = await response.json();
+        const mappedDoctors: DoctorCard[] = (result.data ?? []).map(
+          (doctor, index) => ({
+            _id: doctor._id,
+            name: doctor.name,
+            role: doctor.psychiatristInfo?.certificate || "Psikolog Profesional",
+            rating: "5.0",
+            reviews:
+              doctor.psychiatristInfo?.experience !== undefined
+                ? `${doctor.psychiatristInfo.experience}+`
+                : "Baru",
+            tags:
+              doctor.psychiatristInfo?.scheduleDays?.slice(0, 3) ||
+              DEFAULT_DOCTOR_TAGS,
+            img: DEFAULT_DOCTOR_IMAGES[index % DEFAULT_DOCTOR_IMAGES.length],
+          })
+        );
+
+        if (isMounted) {
+          setDoctors(mappedDoctors);
+        }
+      } catch (error) {
+        console.error("Failed to fetch doctors:", error);
+
+        if (isMounted) {
+          setDoctors([]);
+        }
+      } finally {
+        if (isMounted) {
+          setIsDoctorsLoading(false);
+        }
+      }
+    };
+
+    fetchDoctors();
+
+    return () => {
+      isMounted = false;
     };
   }, []);
 
@@ -376,49 +466,59 @@ export default function Home() {
                   (e.currentTarget.style.animationPlayState = "running")
                 }
               >
-                {[...PSYCHOLOGISTS, ...PSYCHOLOGISTS].map((p, idx) => (
-                  <div
-                    key={idx}
-                    className="w-72 shrink-0 bg-white rounded-[2rem] overflow-hidden group shadow-sm hover:shadow-xl transition-all duration-300 border border-transparent hover:border-blue-100"
-                  >
-                    <div className="relative h-64 overflow-hidden bg-gray-100">
-                      <img
-                        src={p.img}
-                        alt={p.name}
-                        className="w-full h-full object-cover object-top group-hover:scale-105 transition-transform duration-500"
-                      />
-                      <div className="absolute top-4 right-4 bg-white/90 backdrop-blur-sm px-3 py-1 rounded-full text-xs font-bold text-blue-900 flex items-center gap-1">
-                        <svg
-                          className="w-4 h-4 text-yellow-400"
-                          viewBox="0 0 24 24"
-                          fill="currentColor"
-                        >
-                          <path d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
-                        </svg>
-                        {p.rating} ({p.reviews})
-                      </div>
-                    </div>
-                    <div className="p-8">
-                      <h3 className="text-xl font-bold text-blue-900 mb-1">
-                        {p.name}
-                      </h3>
-                      <p className="text-sm text-gray-500 mb-4">{p.role}</p>
-                      <div className="flex flex-wrap gap-2 mb-6">
-                        {p.tags.map((t) => (
-                          <span
-                            key={t}
-                            className="text-[10px] font-bold py-1 px-3 bg-blue-50 text-blue-900 rounded-full uppercase tracking-wider"
+                {isDoctorsLoading ? (
+                  <p className="py-20 text-gray-500 font-medium">
+                    Memuat data psikolog...
+                  </p>
+                ) : doctors.length === 0 ? (
+                  <p className="py-20 text-gray-500 font-medium">
+                    Belum ada data psikolog tersedia.
+                  </p>
+                ) : (
+                  [...doctors, ...doctors].map((p, idx) => (
+                    <div
+                      key={`${p._id}-${idx}`}
+                      className="w-72 shrink-0 bg-white rounded-[2rem] overflow-hidden group shadow-sm hover:shadow-xl transition-all duration-300 border border-transparent hover:border-blue-100"
+                    >
+                      <div className="relative h-64 overflow-hidden bg-gray-100">
+                        <img
+                          src={p.img}
+                          alt={p.name}
+                          className="w-full h-full object-cover object-top group-hover:scale-105 transition-transform duration-500"
+                        />
+                        <div className="absolute top-4 right-4 bg-white/90 backdrop-blur-sm px-3 py-1 rounded-full text-xs font-bold text-blue-900 flex items-center gap-1">
+                          <svg
+                            className="w-4 h-4 text-yellow-400"
+                            viewBox="0 0 24 24"
+                            fill="currentColor"
                           >
-                            {t}
-                          </span>
-                        ))}
+                            <path d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
+                          </svg>
+                          {p.rating} ({p.reviews})
+                        </div>
                       </div>
-                      <button className="w-full py-3 bg-blue-900 text-white font-bold rounded-xl hover:bg-blue-800 transition-colors active:scale-95">
-                        Booking Jadwal
-                      </button>
+                      <div className="p-8">
+                        <h3 className="text-xl font-bold text-blue-900 mb-1">
+                          {p.name}
+                        </h3>
+                        <p className="text-sm text-gray-500 mb-4">{p.role}</p>
+                        <div className="flex flex-wrap gap-2 mb-6">
+                          {p.tags.map((t) => (
+                            <span
+                              key={t}
+                              className="text-[10px] font-bold py-1 px-3 bg-blue-50 text-blue-900 rounded-full uppercase tracking-wider"
+                            >
+                              {t}
+                            </span>
+                          ))}
+                        </div>
+                        <button className="w-full py-3 bg-blue-900 text-white font-bold rounded-xl hover:bg-blue-800 transition-colors active:scale-95">
+                          Booking Jadwal
+                        </button>
+                      </div>
                     </div>
-                  </div>
-                ))}
+                  ))
+                )}
               </div>
             </div>
             <div className="mt-12 text-center">

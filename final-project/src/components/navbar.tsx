@@ -1,9 +1,11 @@
 "use client";
 
 import { useState } from "react";
+import { useSession, signOut } from "next-auth/react";
 
 export default function Navbar() {
   const [menuOpen, setMenuOpen] = useState(false);
+  const { data: session } = useSession();
   return (
     <nav className="fixed top-0 w-full z-50 bg-white/80 backdrop-blur-md shadow-sm">
       <div className="flex justify-between items-center px-6 py-4 max-w-7xl mx-auto">
@@ -35,18 +37,26 @@ export default function Navbar() {
           </a>
           <a
             key="kontenpsikologi"
-            href="/kontenpsikologi"
+            href="/qna"
             className="text-gray-500 hover:text-blue-700 transition-colors"
           >
-            Konten Psikologi
+            Konsultasi
           </a>
-          <a
-            key="masuk"
-            href="/login"
-            className="text-gray-500 hover:text-blue-700 transition-colors"
-          >
-            Masuk / Daftar
-          </a>
+          {session ? (
+            <button
+              onClick={() => signOut({callbackUrl: '/login'})}
+              className="text-gray-500 hover:text-red-600 transition-colors"
+            >
+              Logout
+            </button>
+          ) : (
+            <a
+              href="/login"
+              className="text-gray-500 hover:text-blue-700 transition-colors"
+            >
+              Masuk / Daftar
+            </a>
+          )}
         </div>
 
         <div className="flex items-center gap-3">
@@ -90,18 +100,26 @@ export default function Navbar() {
           </a>
           <a
             key="kontenpsikologi"
-            href="/kontenpsikologi"
+            href="/qna"
             className="block py-3 text-sm font-medium text-gray-600 border-b border-gray-50"
           >
-            Konten Psikologi
+          Konsultasi
           </a>
-          <a
-            key="masuk"
-            href="/login"
-            className="block py-3 text-sm font-medium text-gray-600 border-b border-gray-50"
-          >
-            Masuk / Daftar
-          </a>
+          {session ? (
+            <button
+              onClick={() => signOut({ callbackUrl: "/login" })}
+              className="block w-full text-left py-3 text-sm font-medium text-red-600 border-b border-gray-50"
+            >
+              Logout
+            </button>
+          ) : (
+            <a
+              href="/login"
+              className="block py-3 text-sm font-medium text-gray-600 border-b border-gray-50"
+            >
+              Masuk / Daftar
+            </a>
+          )}
 
           <button className="mt-4 w-full py-3 bg-orange-500 text-white font-bold rounded-xl">
             Konseling Sekarang
