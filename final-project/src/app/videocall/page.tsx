@@ -9,13 +9,14 @@ import {
   Suspense,
 } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
+import { useSession } from "next-auth/react";
 import { useAgoraVideoCall } from "@/hooks/useAgoraVideoCall";
 import PusherClient from "pusher-js";
 
 type Tab = "chat" | "notes";
 type Message = {
   id: number;
-  from: "doctor" | "user";
+  senderName: string;
   text: string;
   timestamp: string;
 };
@@ -41,6 +42,8 @@ function VideoCallContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const channelName = searchParams.get("channel") ?? "";
+  const { data: session } = useSession();
+  const currentUserName = session?.user?.name || "User";
 
   const {
     connectionState,
@@ -72,20 +75,18 @@ function VideoCallContent() {
 
     const channel = pusher.subscribe(channelName);
     channel.bind("incoming-message", (data: any) => {
-      if (data.senderName !== "User") {
-        setMessages((prev) => [
-          ...prev,
-          {
-            id: Date.now(),
-            from: "doctor",
-            text: data.message,
-            timestamp: new Date(data.timestamp).toLocaleTimeString([], {
-              hour: "2-digit",
-              minute: "2-digit",
-            }),
-          },
-        ]);
-      }
+      setMessages((prev) => [
+        ...prev,
+        {
+          id: Date.now(),
+          senderName: data.senderName || "Unknown",
+          text: data.message,
+          timestamp: new Date(data.timestamp).toLocaleTimeString([], {
+            hour: "2-digit",
+            minute: "2-digit",
+          }),
+        },
+      ]);
     });
 
     return () => {
@@ -98,13 +99,6 @@ function VideoCallContent() {
   const sendMessage = useCallback(
     async (text: string) => {
       if (!text.trim()) return;
-      const now = new Date();
-      const time = `${now.getHours()}:${now.getMinutes()}`;
-
-      setMessages((prev) => [
-        ...prev,
-        { id: Date.now(), from: "user", text, timestamp: time },
-      ]);
 
       try {
         await fetch("/api/chat/send", {
@@ -113,14 +107,14 @@ function VideoCallContent() {
           body: JSON.stringify({
             channelName,
             message: text,
-            senderName: "User",
+            senderName: currentUserName,
           }),
         });
       } catch (err) {
         console.error(err);
       }
     },
-    [channelName]
+    [channelName, currentUserName]
   );
 
   if (!channelName)
@@ -196,7 +190,11 @@ function VideoCallContent() {
           </div>
           <div className="flex-1 overflow-hidden">
             {activeTab === "chat" ? (
-              <ChatPanel messages={messages} onSend={sendMessage} />
+              <ChatPanel
+                messages={messages}
+                onSend={sendMessage}
+                currentUserName={currentUserName}
+              />
             ) : (
               <div className="p-4 text-sm">
                 Catatan sesi akan muncul di sini.
@@ -244,7 +242,11 @@ function VideoCallContent() {
           <div className="p-4 border-b flex justify-between">
             <button onClick={() => setMobChatOpen(false)}>✕ Close</button>
           </div>
-          <ChatPanel messages={messages} onSend={sendMessage} />
+          <ChatPanel
+            messages={messages}
+            onSend={sendMessage}
+            currentUserName={currentUserName}
+          />
         </div>
       )}
     </div>
@@ -255,12 +257,15 @@ function VideoCallContent() {
 function ChatPanel({
   messages,
   onSend,
+  currentUserName,
 }: {
   messages: Message[];
   onSend: (t: string) => void;
+  currentUserName: string;
 }) {
   const [val, setVal] = useState("");
   const endRef = useRef<HTMLDivElement>(null);
+
   useEffect(
     () => endRef.current?.scrollIntoView({ behavior: "smooth" }),
     [messages]
@@ -269,32 +274,43 @@ function ChatPanel({
   return (
     <div className="flex flex-col h-full bg-white">
       <div className="flex-1 overflow-y-auto p-4 space-y-4">
-        {messages.map((m) => (
-          <div
-            key={m.id}
-            className={`flex flex-col ${
-              m.from === "user" ? "items-end" : "items-start"
-            }`}
-          >
+        {messages.map((m: Message) => {
+          const isMine = m.senderName === currentUserName;
+
+          return (
             <div
-              className={`p-3 rounded-2xl max-w-[85%] text-sm ${
-                m.from === "user" ? "bg-blue-600 text-white" : "bg-gray-100"
+              key={m.id}
+              className={`flex flex-col ${
+                isMine ? "items-end" : "items-start"
               }`}
             >
-              {m.text}
+              <div
+                className={`p-3 rounded-2xl max-w-[85%] text-sm ${
+                  isMine ? "bg-blue-600 text-white" : "bg-gray-100"
+                }`}
+              >
+                {m.text}
+              </div>
+              <span className="text-[10px] text-gray-400 mt-1">
+                {m.timestamp}
+              </span>
             </div>
-            <span className="text-[10px] text-gray-400 mt-1">
-              {m.timestamp}
-            </span>
-          </div>
-        ))}
+          );
+        })}
+
         <div ref={endRef} />
       </div>
+
       <div className="p-4 border-t flex gap-2">
         <input
           value={val}
           onChange={(e) => setVal(e.target.value)}
-          onKeyDown={(e) => e.key === "Enter" && (onSend(val), setVal(""))}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") {
+              onSend(val);
+              setVal("");
+            }
+          }}
           className="flex-1 border rounded-full px-4 py-2 text-sm outline-none"
           placeholder="Tulis pesan..."
         />
