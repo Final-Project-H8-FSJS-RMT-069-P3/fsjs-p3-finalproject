@@ -88,4 +88,22 @@ export default class UserBooking {
       ])
       .toArray();
   }
+
+  static async updateBookingPaymentStatus(
+    bookingId: string,
+    isPaid: boolean,
+  ) {
+    const collection = await this.getCollection();
+
+    const result = await collection.updateOne(
+      { _id: toObjectId(bookingId) },
+      {
+        $set: {
+          isPaid,
+        },
+      },
+    );
+
+    return result;
+  }
 }

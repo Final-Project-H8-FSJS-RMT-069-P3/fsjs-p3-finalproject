@@ -1,7 +1,9 @@
 "use client";
 
 import Navbar from "@/components/navbar";
+import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
+import { StartSessionButton } from "./StartSessionButton";
 
 type Booking = {
   _id: string;
@@ -103,7 +105,9 @@ export default function BookingListPage() {
             <p className="text-sm font-semibold uppercase tracking-wider text-blue-600">
               Booking List
             </p>
-            <h1 className="mt-2 text-3xl font-extrabold text-slate-900">{pageTitle}</h1>
+            <h1 className="mt-2 text-3xl font-extrabold text-slate-900">
+              {pageTitle}
+            </h1>
             <p className="mt-2 text-sm text-slate-600">
               Menampilkan seluruh booking kamu.
             </p>
@@ -150,7 +154,9 @@ export default function BookingListPage() {
                           {formatDateTime(booking.date)}
                         </td>
                         <td className="px-4 py-3 font-medium text-slate-900">
-                          {role === "DOCTOR" ? booking.userName : booking.staffName}
+                          {role === "DOCTOR"
+                            ? booking.userName
+                            : booking.staffName}
                         </td>
                         <td className="px-4 py-3 text-slate-700">
                           {booking.sessionDuration} menit
@@ -159,15 +165,18 @@ export default function BookingListPage() {
                           {formatAmount(booking.amount)}
                         </td>
                         <td className="px-4 py-3">
-                          <span
-                            className={`inline-flex rounded-full px-2.5 py-1 text-xs font-semibold ${
-                              booking.isPaid
-                                ? "bg-green-100 text-green-700"
-                                : "bg-amber-100 text-amber-700"
-                            }`}
-                          >
-                            {booking.isPaid ? "Paid" : "Unpaid"}
-                          </span>
+                          {booking.isPaid ? (
+                            <span className="inline-flex rounded-full bg-green-100 px-2.5 py-1 text-xs font-semibold text-green-700">
+                              Paid
+                            </span>
+                          ) : (
+                            <Link
+                              href={`/payment?amount=${booking.amount}&itemId=CONSULT-${booking._id}&itemName=Sesi Konseling&orderId=ORDER-${booking._id}&bookingId=${booking._id}`}
+                              className="inline-flex rounded-full bg-amber-100 px-2.5 py-1 text-xs font-semibold text-amber-700 transition-colors hover:bg-amber-200"
+                            >
+                              Unpaid
+                            </Link>
+                          )}
                         </td>
                         <td className="px-4 py-3">
                           <span
@@ -179,6 +188,11 @@ export default function BookingListPage() {
                           >
                             {booking.isDone ? "Done" : "Upcoming"}
                           </span>
+                          {booking.isPaid && !booking.isDone && (
+                            <StartSessionButton
+                              bookingId={booking._id.toString()}
+                            />
+                          )}
                         </td>
                       </tr>
                     ))}

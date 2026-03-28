@@ -6,6 +6,7 @@ type PaymentPageProps = {
     itemId?: string | string[];
     itemName?: string | string[];
     orderId?: string | string[];
+    bookingId?: string | string[];
   }>;
 };
 
@@ -29,6 +30,7 @@ export default async function PaymentPage({ searchParams }: PaymentPageProps) {
   const itemId = getSingleParam(params.itemId) || "CONSULT-ONLINE";
   const itemName = getSingleParam(params.itemName) || "Konseling Online";
   const orderId = getSingleParam(params.orderId) || `ORDER-${Date.now()}`;
+  const bookingId = getSingleParam(params.bookingId);
 
   return (
     <PaymentCheckoutClient
@@ -36,6 +38,7 @@ export default async function PaymentPage({ searchParams }: PaymentPageProps) {
       itemId={itemId}
       itemName={itemName}
       orderId={orderId}
+      bookingId={bookingId}
     />
   );
 }
