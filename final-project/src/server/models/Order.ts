@@ -17,6 +17,7 @@ export interface IOrder {
   _id?: ObjectId;
   userId: string;
   orderId: string;
+  bookingId?: string;
   items: IOrderItem[];
   totalAmount: number;
   status: "pending" | "success" | "failed";

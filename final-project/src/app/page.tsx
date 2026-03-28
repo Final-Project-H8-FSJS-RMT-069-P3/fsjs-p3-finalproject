@@ -519,8 +519,11 @@ export default function Home() {
                             </span>
                           ))}
                         </div>
-                        <button className="w-full py-3 bg-blue-900 text-white font-bold rounded-xl hover:bg-blue-800 transition-colors active:scale-95">
-                          Booking Jadwal
+                        <button
+                          className="w-full py-3 bg-blue-900 text-white font-bold rounded-xl hover:bg-blue-800 transition-colors active:scale-95
+                        "
+                        >
+                          <Link href="/listpsikolog">Booking Jadwal</Link>
                         </button>
                       </div>
                     </div>

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import Order from "@/server/models/Order";
+import UserBooking from "@/server/models/UserBooking";
 
 export async function POST(request: NextRequest) {
   try {
@@ -35,6 +36,14 @@ export async function POST(request: NextRequest) {
 
     // Update order status in database
     await Order.updateOrderStatus(order_id, orderStatus);
+
+    // If payment is successful, also update the booking payment status
+    if (orderStatus === "success") {
+      const order = await Order.getOrderById(order_id);
+      if (order && order.bookingId) {
+        await UserBooking.updateBookingPaymentStatus(order.bookingId, true);
+      }
+    }
 
     return NextResponse.json({ message: "Webhook processed successfully" });
   } catch (error: unknown) {

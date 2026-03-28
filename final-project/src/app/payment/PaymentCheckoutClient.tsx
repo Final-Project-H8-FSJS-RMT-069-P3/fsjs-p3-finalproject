@@ -8,6 +8,7 @@ type PaymentCheckoutClientProps = {
   itemId: string;
   itemName: string;
   orderId: string;
+  bookingId?: string;
 };
 
 type PaymentItem = {
@@ -19,6 +20,7 @@ type PaymentItem = {
 
 type PaymentRequestPayload = {
   orderId: string;
+  bookingId?: string;
   grossAmount: number;
   items: PaymentItem[];
   customerDetails: {
@@ -53,6 +55,7 @@ export default function PaymentCheckoutClient({
   itemId,
   itemName,
   orderId,
+  bookingId,
 }: PaymentCheckoutClientProps) {
   const [profileName, setProfileName] = useState("");
   const [profileEmail, setProfileEmail] = useState("");
@@ -66,6 +69,7 @@ export default function PaymentCheckoutClient({
   const payload: PaymentRequestPayload = useMemo(
     () => ({
       orderId,
+      bookingId,
       grossAmount: amount,
       items: [
         {
@@ -80,7 +84,7 @@ export default function PaymentCheckoutClient({
         email,
       },
     }),
-    [amount, email, firstName, itemId, itemName, orderId],
+    [amount, bookingId, email, firstName, itemId, itemName, orderId],
   );
 
   useEffect(() => {
