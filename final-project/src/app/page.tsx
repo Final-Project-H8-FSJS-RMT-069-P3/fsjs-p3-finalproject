@@ -269,7 +269,8 @@ export default function Home() {
           (doctor, index) => ({
             _id: doctor._id,
             name: doctor.name,
-            role: doctor.psychiatristInfo?.certificate || "Psikolog Profesional",
+            role:
+              doctor.psychiatristInfo?.certificate || "Psikolog Profesional",
             rating: "5.0",
             reviews:
               doctor.psychiatristInfo?.experience !== undefined
@@ -519,8 +520,11 @@ export default function Home() {
                             </span>
                           ))}
                         </div>
-                        <button className="w-full py-3 bg-blue-900 text-white font-bold rounded-xl hover:bg-blue-800 transition-colors active:scale-95">
-                          Booking Jadwal
+                        <button
+                          className="w-full py-3 bg-blue-900 text-white font-bold rounded-xl hover:bg-blue-800 transition-colors active:scale-95
+                        "
+                        >
+                          <a href="/listpsikolog">Booking Jadwal</a>
                         </button>
                       </div>
                     </div>
