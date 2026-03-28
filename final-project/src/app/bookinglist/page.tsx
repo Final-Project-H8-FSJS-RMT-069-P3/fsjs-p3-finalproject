@@ -2,6 +2,7 @@
 
 import Navbar from "@/components/navbar";
 import { useEffect, useMemo, useState } from "react";
+import { StartSessionButton } from "./StartSessionButton";
 
 type Booking = {
   _id: string;
@@ -103,7 +104,9 @@ export default function BookingListPage() {
             <p className="text-sm font-semibold uppercase tracking-wider text-blue-600">
               Booking List
             </p>
-            <h1 className="mt-2 text-3xl font-extrabold text-slate-900">{pageTitle}</h1>
+            <h1 className="mt-2 text-3xl font-extrabold text-slate-900">
+              {pageTitle}
+            </h1>
             <p className="mt-2 text-sm text-slate-600">
               Menampilkan seluruh booking kamu.
             </p>
@@ -150,7 +153,9 @@ export default function BookingListPage() {
                           {formatDateTime(booking.date)}
                         </td>
                         <td className="px-4 py-3 font-medium text-slate-900">
-                          {role === "DOCTOR" ? booking.userName : booking.staffName}
+                          {role === "DOCTOR"
+                            ? booking.userName
+                            : booking.staffName}
                         </td>
                         <td className="px-4 py-3 text-slate-700">
                           {booking.sessionDuration} menit
@@ -179,6 +184,11 @@ export default function BookingListPage() {
                           >
                             {booking.isDone ? "Done" : "Upcoming"}
                           </span>
+                          {booking.isPaid && !booking.isDone && (
+                            <StartSessionButton
+                              bookingId={booking._id.toString()}
+                            />
+                          )}
                         </td>
                       </tr>
                     ))}

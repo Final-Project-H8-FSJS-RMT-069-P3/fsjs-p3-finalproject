@@ -1,7 +1,22 @@
+// src/app/api/video/token/route.ts
+//
+// Semua action video call dalam satu file:
+//
+//   POST → { action: "create-room", bookingId }
+//          Buat roomName di UserBookings, dipanggil dari bookinglist saat user klik "Mulai Sesi"
+//
+//   POST → { action: "join", channelName }
+//          Validasi akses + generate Agora token
+//
+//   POST → { action: "end-room", channelName }
+//          Tandai sesi selesai (isDone: true)
+
 import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { getDB } from "@/server/config/mongodb";
 import { RtcTokenBuilder, RtcRole } from "agora-token";
+import { ObjectId } from "mongodb";
+import { nanoid } from "nanoid"; // npm install nanoid
 
 const APP_ID = process.env.AGORA_APP_ID!;
 const APP_CERTIFICATE = process.env.AGORA_APP_CERTIFICATE!;
@@ -9,51 +24,217 @@ const APP_CERTIFICATE = process.env.AGORA_APP_CERTIFICATE!;
 export async function POST(req: Request) {
   try {
     const session = await auth();
-    if (!session || !session.user) {
+    if (!session?.user) {
       return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
     }
 
-    const { channelName } = await req.json();
-    if (!channelName) {
-      return NextResponse.json({ message: "Channel name is required" }, { status: 400 });
+    const body = await req.json();
+    const { action } = body;
+
+    if (!action) {
+      return NextResponse.json(
+        { message: "Field 'action' wajib diisi" },
+        { status: 400 }
+      );
     }
 
     const db = await getDB();
-    const room = await db.collection("Rooms").findOne({ roomName: channelName });
+    const bookings = db.collection("UserBookings");
 
-    if (!room) {
-      return NextResponse.json({ message: "Room not found" }, { status: 404 });
+    // ───────────────────────────────────────────────────────────────
+    // ACTION: create-room
+    // Dipanggil dari bookinglist ketika user/dokter klik "Mulai Sesi"
+    // Syarat: booking harus sudah dibayar (isPaid: true)
+    // Body: { action: "create-room", bookingId: string }
+    // ───────────────────────────────────────────────────────────────
+    if (action === "create-room") {
+      const { bookingId } = body;
+
+      if (!bookingId) {
+        return NextResponse.json(
+          { message: "bookingId wajib diisi" },
+          { status: 400 }
+        );
+      }
+
+      if (!ObjectId.isValid(bookingId)) {
+        return NextResponse.json(
+          { message: "bookingId tidak valid" },
+          { status: 400 }
+        );
+      }
+
+      const booking = await bookings.findOne({
+        _id: new ObjectId(bookingId),
+      });
+
+      if (!booking) {
+        return NextResponse.json(
+          { message: "Booking tidak ditemukan" },
+          { status: 404 }
+        );
+      }
+
+      // Hanya userId atau staffId yang boleh buat room
+      const currentUserId = session.user.id;
+      const isAuthorized =
+        booking.userId.toString() === currentUserId ||
+        booking.staffId.toString() === currentUserId;
+
+      if (!isAuthorized) {
+        return NextResponse.json(
+          { message: "Anda tidak memiliki akses ke booking ini" },
+          { status: 403 }
+        );
+      }
+
+      // Booking harus sudah dibayar
+      if (!booking.isPaid) {
+        return NextResponse.json(
+          { message: "Sesi belum bisa dimulai, pembayaran belum selesai" },
+          { status: 400 }
+        );
+      }
+
+      // Kalau roomName sudah ada, langsung kembalikan
+      if (booking.roomName) {
+        return NextResponse.json({ roomName: booking.roomName });
+      }
+
+      // Buat roomName baru dan simpan ke booking yang sudah ada
+      const roomName = `session_${bookingId}_${nanoid(8)}`;
+
+      await bookings.updateOne(
+        { _id: new ObjectId(bookingId) },
+        { $set: { roomName } }
+      );
+
+      return NextResponse.json({ roomName }, { status: 201 });
     }
 
-    const currentUserId = session.user.id;
-    const isUserValid = 
-      room.userId.toString() === currentUserId || 
-      room.staffId.toString() === currentUserId;
+    // ───────────────────────────────────────────────────────────────
+    // ACTION: join
+    // Dipanggil dari halaman /videocall?channel=xxx saat user klik join
+    // Body: { action: "join", channelName: string }
+    // ───────────────────────────────────────────────────────────────
+    if (action === "join") {
+      const { channelName } = body;
 
-    if (!isUserValid) {
-      return NextResponse.json({ message: "You are not authorized to join this room" }, { status: 403 });
+      if (!channelName) {
+        return NextResponse.json(
+          { message: "channelName wajib diisi" },
+          { status: 400 }
+        );
+      }
+
+      const booking = await bookings.findOne({ roomName: channelName });
+
+      if (!booking) {
+        return NextResponse.json(
+          { message: "Room tidak ditemukan" },
+          { status: 404 }
+        );
+      }
+
+      const currentUserId = session.user.id;
+      const isAuthorized =
+        booking.userId.toString() === currentUserId ||
+        booking.staffId.toString() === currentUserId;
+
+      if (!isAuthorized) {
+        return NextResponse.json(
+          { message: "Anda tidak memiliki akses ke room ini" },
+          { status: 403 }
+        );
+      }
+
+      // Generate UID dari userId (Agora butuh angka)
+      const uid =
+        parseInt(currentUserId.replace(/\D/g, "").slice(0, 8), 10) || 0;
+
+      const privilegeExpiredTs = Math.floor(Date.now() / 1000) + 3600;
+
+      const token = RtcTokenBuilder.buildTokenWithUid(
+        APP_ID,
+        APP_CERTIFICATE,
+        channelName,
+        uid,
+        RtcRole.PUBLISHER,
+        privilegeExpiredTs
+      );
+
+      // Tandai bahwa user ini adalah dokter atau pasien
+      const isPsychologist = booking.staffId.toString() === currentUserId;
+
+      return NextResponse.json({
+        token,
+        appId: APP_ID,
+        channelName,
+        uid,
+        isPsychologist,
+      });
     }
 
-    const currentTimestamp = Math.floor(Date.now() / 1000);
-    const privilegeExpiredTs = currentTimestamp + 3600; // Token valid for 1 hour
+    // ───────────────────────────────────────────────────────────────
+    // ACTION: end-room
+    // Dipanggil saat user klik "Akhiri Sesi"
+    // Body: { action: "end-room", channelName: string }
+    // ───────────────────────────────────────────────────────────────
+    if (action === "end-room") {
+      const { channelName } = body;
 
-    const token = RtcTokenBuilder.buildTokenWithUid(
-      APP_ID,
-      APP_CERTIFICATE,
-      channelName,
-      0, // UID 0 means Agora assigns a random ID
-      RtcRole.PUBLISHER,
-      privilegeExpiredTs
+      if (!channelName) {
+        return NextResponse.json(
+          { message: "channelName wajib diisi" },
+          { status: 400 }
+        );
+      }
+
+      const booking = await bookings.findOne({ roomName: channelName });
+
+      if (!booking) {
+        return NextResponse.json(
+          { message: "Room tidak ditemukan" },
+          { status: 404 }
+        );
+      }
+
+      const currentUserId = session.user.id;
+      const isAuthorized =
+        booking.userId.toString() === currentUserId ||
+        booking.staffId.toString() === currentUserId;
+
+      if (!isAuthorized) {
+        return NextResponse.json(
+          { message: "Anda tidak memiliki akses" },
+          { status: 403 }
+        );
+      }
+
+      // Tandai booking sebagai selesai di UserBookings yang sudah ada
+      await bookings.updateOne(
+        { roomName: channelName },
+        {
+          $set: {
+            isDone: true,
+            sessionEndedAt: new Date(),
+          },
+        }
+      );
+
+      return NextResponse.json({ message: "Sesi berhasil diakhiri" });
+    }
+
+    // Action tidak dikenali
+    return NextResponse.json(
+      { message: `Action '${action}' tidak dikenali` },
+      { status: 400 }
     );
-
-    return NextResponse.json({ 
-      token, 
-      appId: APP_ID, 
-      channelName 
-    });
-
   } catch (error) {
-    console.error("Video Token Error:", error);
-    return NextResponse.json({ message: "Failed to generate token" }, { status: 500 });
+    console.error("Video API Error:", error);
+    return NextResponse.json(
+      { message: "Terjadi kesalahan server" },
+      { status: 500 }
+    );
   }
 }
