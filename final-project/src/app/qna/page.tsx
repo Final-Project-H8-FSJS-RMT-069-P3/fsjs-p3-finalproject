@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useState } from "react";
 
 const STEPS = [
@@ -682,12 +683,12 @@ export default function PreConsultationForm() {
     <div className="min-h-screen bg-[#f8f9ff]">
       <header className="bg-white border-b border-gray-100 sticky top-0 z-50">
         <div className="max-w-3xl mx-auto px-6 py-4 flex items-center justify-between">
-          <a
+          <Link
             href="/"
             className="text-2xl font-black text-blue-900 tracking-tighter"
           >
             pendengarMu
-          </a>
+          </Link>
           <div className="flex items-center gap-3">
             <span className="hidden sm:inline-block text-sm text-gray-400 font-medium">
               Formulir Pre-Konsultasi

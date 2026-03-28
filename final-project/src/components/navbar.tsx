@@ -1,11 +1,20 @@
 "use client";
 
+import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { useSession, signOut } from "next-auth/react";
 
 export default function Navbar() {
   const [menuOpen, setMenuOpen] = useState(false);
   const { data: session } = useSession();
+  const router = useRouter();
+
+  const handleLogout = async () => {
+    await signOut({ redirect: false });
+    router.push("/login");
+  };
+
   return (
     <nav className="fixed top-0 w-full z-50 bg-white/80 backdrop-blur-md shadow-sm">
       <div className="flex justify-between items-center px-6 py-4 max-w-7xl mx-auto">
@@ -14,55 +23,55 @@ export default function Navbar() {
         </div>
 
         <div className="hidden md:flex items-center space-x-8 text-sm font-medium">
-          <a
+          <Link
             key="home"
             href="/"
             className="text-gray-500 hover:text-blue-700 transition-colors"
           >
             Home
-          </a>
-          <a
+          </Link>
+          <Link
             key="listpsikolog"
             href="/listpsikolog"
             className="text-gray-500 hover:text-blue-700 transition-colors"
           >
             List Psikolog
-          </a>
-          <a
+          </Link>
+          <Link
             key="aboutus"
             href="/aboutus"
             className="text-gray-500 hover:text-blue-700 transition-colors"
           >
             Tentang kami
-          </a>
-          <a
+          </Link>
+          <Link
             key="kontenpsikologi"
             href="/qna"
             className="text-gray-500 hover:text-blue-700 transition-colors"
           >
             Konsultasi
-          </a>
-          <a
+          </Link>
+          <Link
             key="bookinglist"
             href="/bookinglist"
             className="block py-3 text-sm font-medium text-gray-600 border-b border-gray-50"
           >
           list booking
-          </a>
+          </Link>
           {session ? (
             <button
-              onClick={() => signOut({callbackUrl: '/login'})}
+              onClick={handleLogout}
               className="text-gray-500 hover:text-red-600 transition-colors"
             >
               Logout
             </button>
           ) : (
-            <a
+            <Link
               href="/login"
               className="text-gray-500 hover:text-blue-700 transition-colors"
             >
               Masuk / Daftar
-            </a>
+            </Link>
           )}
         </div>
 
@@ -84,55 +93,55 @@ export default function Navbar() {
       {/* ini untuk tampilan mobilenya */}
       {menuOpen && (
         <div className="md:hidden bg-white border-t border-gray-100 px-6 py-4 shadow-lg">
-          <a
+          <Link
             key="home"
             href="/home"
             className="block py-3 text-sm font-medium text-gray-600 border-b border-gray-50"
           >
             Home
-          </a>
-          <a
+          </Link>
+          <Link
             key="listpsikolog"
             href="/listpsikolog"
             className="block py-3 text-sm font-medium text-gray-600 border-b border-gray-50"
           >
             List Psikolog
-          </a>
-          <a
+          </Link>
+          <Link
             key="aboutus"
             href="/aboutus"
             className="block py-3 text-sm font-medium text-gray-600 border-b border-gray-50"
           >
             Tentang kami
-          </a>
-          <a
+          </Link>
+          <Link
             key="kontenpsikologi"
             href="/qna"
             className="block py-3 text-sm font-medium text-gray-600 border-b border-gray-50"
           >
           Konsultasi
-          </a>
-          <a
+          </Link>
+          <Link
             key="bookinglist"
             href="/bookinglist"
             className="block py-3 text-sm font-medium text-gray-600 border-b border-gray-50"
           >
           list booking
-          </a>
+          </Link>
           {session ? (
             <button
-              onClick={() => signOut({ callbackUrl: "/login" })}
+              onClick={handleLogout}
               className="block w-full text-left py-3 text-sm font-medium text-red-600 border-b border-gray-50"
             >
               Logout
             </button>
           ) : (
-            <a
+            <Link
               href="/login"
               className="block py-3 text-sm font-medium text-gray-600 border-b border-gray-50"
             >
               Masuk / Daftar
-            </a>
+            </Link>
           )}
 
           <button className="mt-4 w-full py-3 bg-orange-500 text-white font-bold rounded-xl">

@@ -1,6 +1,7 @@
 "use client";
 
 import Navbar from "@/components/navbar";
+import Link from "next/link";
 import { useState, useEffect } from "react";
 
 /*
@@ -324,8 +325,11 @@ export default function Home() {
                 tanpa menghakimi.
               </p>
               <div className="flex flex-col sm:flex-row gap-4">
-                <button className="bg-orange-500 text-white px-8 py-4 rounded-xl font-bold text-lg shadow-lg hover:shadow-orange-200 hover:shadow-xl transition-all flex items-center justify-center gap-2 active:scale-95">
-                  <a href="/login">Konseling Sekarang</a>
+                <Link
+                  href="/login"
+                  className="bg-orange-500 text-white px-8 py-4 rounded-xl font-bold text-lg shadow-lg hover:shadow-orange-200 hover:shadow-xl transition-all flex items-center justify-center gap-2 active:scale-95"
+                >
+                  Konseling Sekarang
                   <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none">
                     <path
                       d="M14 5l7 7m0 0l-7 7m7-7H3"
@@ -335,10 +339,13 @@ export default function Home() {
                       strokeLinejoin="round"
                     />
                   </svg>
-                </button>
-                <button className="bg-blue-800 text-white px-8 py-4 rounded-xl font-bold text-lg shadow-lg hover:bg-blue-700 transition-all active:scale-95">
-                  <a href="/listpsikolog">Lihat List Psikolog</a>
-                </button>
+                </Link>
+                <Link
+                  href="/listpsikolog"
+                  className="bg-blue-800 text-white px-8 py-4 rounded-xl font-bold text-lg shadow-lg hover:bg-blue-700 transition-all active:scale-95"
+                >
+                  Lihat List Psikolog
+                </Link>
               </div>
               <div className="mt-10 flex items-center gap-4">
                 <div className="flex -space-x-3">
@@ -522,8 +529,8 @@ export default function Home() {
               </div>
             </div>
             <div className="mt-12 text-center">
-              <a
-                href="#"
+              <Link
+                href="/listpsikolog"
                 className="text-blue-900 font-bold hover:underline flex items-center justify-center gap-2 text-base"
               >
                 Lihat Semua Psikolog Kami
@@ -536,7 +543,7 @@ export default function Home() {
                     strokeLinejoin="round"
                   />
                 </svg>
-              </a>
+              </Link>
             </div>
           </div>
         </section>
@@ -1021,12 +1028,12 @@ export default function Home() {
       <footer className="bg-gray-50 border-t border-gray-100">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-12 px-8 py-16 max-w-7xl mx-auto text-sm text-gray-500">
           <div className="md:col-span-1">
-            <a
-              href="#"
+            <Link
+              href="/"
               className="text-3xl font-black text-blue-900 mb-4 block tracking-tighter"
             >
               pendengarMu
-            </a>
+            </Link>
             <p className="leading-relaxed mb-6">
               Partner terpercaya untuk kesehatan mental Anda. Menghubungkan Anda
               dengan profesional berlisensi secara mudah dan terjangkau.
@@ -1080,13 +1087,13 @@ export default function Home() {
                   <polyline points="22,6 12,13 2,6" strokeWidth={1.5} />
                 </svg>,
               ].map((icon, i) => (
-                <a
+                <Link
                   key={i}
-                  href="#"
+                  href="/"
                   className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-900 hover:bg-blue-900 hover:text-white transition-all"
                 >
                   {icon}
-                </a>
+                </Link>
               ))}
             </div>
           </div>
@@ -1098,12 +1105,12 @@ export default function Home() {
               <ul className="space-y-4">
                 {col.links.map((l) => (
                   <li key={l}>
-                    <a
-                      href="#"
+                    <Link
+                      href="/"
                       className="text-gray-400 hover:text-blue-700 hover:underline underline-offset-4 transition-all"
                     >
                       {l}
-                    </a>
+                    </Link>
                   </li>
                 ))}
               </ul>

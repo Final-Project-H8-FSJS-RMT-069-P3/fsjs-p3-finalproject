@@ -1,4 +1,5 @@
 import Navbar from "@/components/navbar";
+import Link from "next/link";
 
 export default function AboutPage() {
   return (
@@ -376,19 +377,19 @@ export default function AboutPage() {
         <footer className="bg-gray-50 border-t border-gray-100">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-12 px-8 py-16 max-w-7xl mx-auto text-sm text-gray-500">
             <div className="md:col-span-1">
-              <a
-                href="#"
+              <Link
+                href="/"
                 className="text-3xl font-black text-blue-900 mb-4 block tracking-tighter"
               >
                 pendengarMu
-              </a>
+              </Link>
               <p className="leading-relaxed mb-6">
                 Partner terpercaya untuk kesehatan mental Anda. Menghubungkan
                 Anda dengan profesional berlisensi secara mudah dan terjangkau.
               </p>
               <div className="flex gap-4">
-                <a
-                  href="#"
+                <Link
+                  href="/"
                   className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-900 hover:bg-blue-900 hover:text-white transition-all"
                 >
                   <svg
@@ -411,9 +412,9 @@ export default function AboutPage() {
                     />
                     <circle cx="17.5" cy="6.5" r=".5" fill="currentColor" />
                   </svg>
-                </a>
-                <a
-                  href="#"
+                </Link>
+                <Link
+                  href="/"
                   className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-900 hover:bg-blue-900 hover:text-white transition-all"
                 >
                   <svg
@@ -427,9 +428,9 @@ export default function AboutPage() {
                       strokeWidth={1.5}
                     />
                   </svg>
-                </a>
-                <a
-                  href="#"
+                </Link>
+                <Link
+                  href="/"
                   className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-900 hover:bg-blue-900 hover:text-white transition-all"
                 >
                   <svg
@@ -444,7 +445,7 @@ export default function AboutPage() {
                     />
                     <polyline points="22,6 12,13 2,6" strokeWidth={1.5} />
                   </svg>
-                </a>
+                </Link>
               </div>
             </div>
 
@@ -454,36 +455,36 @@ export default function AboutPage() {
               </h4>
               <ul className="space-y-4">
                 <li>
-                  <a
-                    href="#"
+                  <Link
+                    href="/"
                     className="text-gray-400 hover:text-blue-700 hover:underline underline-offset-4 transition-all"
                   >
                     Konseling Online
-                  </a>
+                  </Link>
                 </li>
                 <li>
-                  <a
-                    href="#"
+                  <Link
+                    href="/"
                     className="text-gray-400 hover:text-blue-700 hover:underline underline-offset-4 transition-all"
                   >
                     Konseling Offline
-                  </a>
+                  </Link>
                 </li>
                 <li>
-                  <a
-                    href="#"
+                  <Link
+                    href="/"
                     className="text-gray-400 hover:text-blue-700 hover:underline underline-offset-4 transition-all"
                   >
                     Counseling for Kids
-                  </a>
+                  </Link>
                 </li>
                 <li>
-                  <a
-                    href="#"
+                  <Link
+                    href="/"
                     className="text-gray-400 hover:text-blue-700 hover:underline underline-offset-4 transition-all"
                   >
                     Corporate Wellness
-                  </a>
+                  </Link>
                 </li>
               </ul>
             </div>
@@ -494,36 +495,36 @@ export default function AboutPage() {
               </h4>
               <ul className="space-y-4">
                 <li>
-                  <a
-                    href="#"
+                  <Link
+                    href="/"
                     className="text-gray-400 hover:text-blue-700 hover:underline underline-offset-4 transition-all"
                   >
                     Tentang Kami
-                  </a>
+                  </Link>
                 </li>
                 <li>
-                  <a
-                    href="#"
+                  <Link
+                    href="/"
                     className="text-gray-400 hover:text-blue-700 hover:underline underline-offset-4 transition-all"
                   >
                     Lokasi Kami
-                  </a>
+                  </Link>
                 </li>
                 <li>
-                  <a
-                    href="#"
+                  <Link
+                    href="/"
                     className="text-gray-400 hover:text-blue-700 hover:underline underline-offset-4 transition-all"
                   >
                     Karir
-                  </a>
+                  </Link>
                 </li>
                 <li>
-                  <a
-                    href="#"
+                  <Link
+                    href="/"
                     className="text-gray-400 hover:text-blue-700 hover:underline underline-offset-4 transition-all"
                   >
                     Kontak
-                  </a>
+                  </Link>
                 </li>
               </ul>
             </div>
@@ -534,36 +535,36 @@ export default function AboutPage() {
               </h4>
               <ul className="space-y-4">
                 <li>
-                  <a
-                    href="#"
+                  <Link
+                    href="/"
                     className="text-gray-400 hover:text-blue-700 hover:underline underline-offset-4 transition-all"
                   >
                     Kebijakan Privasi
-                  </a>
+                  </Link>
                 </li>
                 <li>
-                  <a
-                    href="#"
+                  <Link
+                    href="/"
                     className="text-gray-400 hover:text-blue-700 hover:underline underline-offset-4 transition-all"
                   >
                     Syarat & Ketentuan
-                  </a>
+                  </Link>
                 </li>
                 <li>
-                  <a
-                    href="#"
+                  <Link
+                    href="/"
                     className="text-gray-400 hover:text-blue-700 hover:underline underline-offset-4 transition-all"
                   >
                     FAQ
-                  </a>
+                  </Link>
                 </li>
                 <li>
-                  <a
-                    href="#"
+                  <Link
+                    href="/"
                     className="text-gray-400 hover:text-blue-700 hover:underline underline-offset-4 transition-all"
                   >
                     Bantuan Refund
-                  </a>
+                  </Link>
                 </li>
               </ul>
             </div>
