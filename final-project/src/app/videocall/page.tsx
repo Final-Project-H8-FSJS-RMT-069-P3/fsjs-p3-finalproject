@@ -9,12 +9,25 @@ import {
   Suspense,
 } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
+import { useSession } from "next-auth/react";
 import { useAgoraVideoCall } from "@/hooks/useAgoraVideoCall";
-import PusherClient from "pusher-js";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 type Tab = "chat" | "notes";
-type Message = { id: number; from: "doctor" | "user"; text: string; timestamp: string; };
+type Message = {
+  id: number;
+  from: "doctor" | "user";
+  text: string;
+  timestamp: string;
+  senderId?: string;
+  senderName?: string;
+};
+
+type PusherConfigResponse = {
+  key?: string;
+  cluster?: string;
+  error?: string;
+};
 
 const NOTES = [
   "Keluhan tidur tidak teratur sejak 3 minggu",
@@ -51,11 +64,11 @@ function VideoTrack({ track, className = "" }: { track: any; className?: string 
 
 function WaveBars({ active }: { active: boolean }) {
   return (
-    <div className="flex items-center gap-[3px]">
+    <div className="flex items-center gap-0.75">
       {[7, 13, 9, 15, 7].map((h, i) => (
         <span
           key={i}
-          className="w-[3px] rounded-sm bg-emerald-500 transition-all duration-500"
+          className="w-0.75 rounded-sm bg-emerald-500 transition-all duration-500"
           style={{
             height: h,
             opacity: active ? 1 : 0.2,
@@ -94,6 +107,9 @@ function CtrlBtn({ icon, label, muted, active, danger, big, onClick }: any) {
 function VideoCallContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
+  const { data: session } = useSession();
+  const currentUserId = session?.user?.id || "";
+  const currentUserName = session?.user?.name || "User";
   
   // AMBIL CHANNEL DARI URL (localhost:3000/videocall?channel=ROOM_ID)
   const channelName = searchParams.get("channel") ?? "";
@@ -115,32 +131,82 @@ function VideoCallContent() {
   // Pusher Listener
   useEffect(() => {
     if (!channelName) return;
-    const pusher = new PusherClient(process.env.NEXT_PUBLIC_PUSHER_KEY!, { cluster: process.env.NEXT_PUBLIC_PUSHER_CLUSTER! });
-    const channel = pusher.subscribe(channelName);
-    
-    channel.bind("incoming-message", (data: any) => {
-      if (data.senderName !== "User") {
-        setMessages((prev) => [...prev, {
-          id: Date.now(), from: "doctor", text: data.message,
-          timestamp: new Date(data.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-        }]);
+    let isMounted = true;
+    let pusher: any = null;
+
+    const setupPusher = async () => {
+      const { default: PusherClient } = await import("pusher-js");
+      if (!isMounted) return;
+
+      const configRes = await fetch("/api/chat/send", { method: "GET" });
+      const configData = (await configRes.json()) as PusherConfigResponse;
+
+      if (!configRes.ok || !configData.key || !configData.cluster) {
+        throw new Error(configData.error || "Pusher config is not available");
       }
+
+      pusher = new PusherClient(configData.key, {
+        cluster: configData.cluster,
+      });
+
+      const channel = pusher.subscribe(channelName);
+      channel.bind("incoming-message", (data: any) => {
+        const isMine = currentUserId && data.senderId === currentUserId;
+
+        setMessages((prev) => [
+          ...prev,
+          {
+            id: Date.now(),
+            from: isMine ? "user" : "doctor",
+            text: data.message,
+            senderId: data.senderId,
+            senderName: data.senderName,
+            timestamp: new Date(data.timestamp).toLocaleTimeString([], {
+              hour: "2-digit",
+              minute: "2-digit",
+            }),
+          },
+        ]);
+      });
+    };
+
+    setupPusher().catch((error) => {
+      console.error("Pusher init error:", error);
     });
-    return () => { pusher.unsubscribe(channelName); pusher.disconnect(); };
-  }, [channelName]);
+
+    return () => {
+      isMounted = false;
+      if (pusher) {
+        pusher.unsubscribe(channelName);
+        pusher.disconnect();
+      }
+    };
+  }, [channelName, currentUserId]);
 
   const sendMessage = useCallback(async (text: string) => {
     if (!text.trim()) return;
     const time = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-    setMessages(p => [...p, { id: Date.now(), from: "user", text, timestamp: time }]);
+    setMessages(p => [...p, {
+      id: Date.now(),
+      from: "user",
+      text,
+      timestamp: time,
+      senderId: currentUserId,
+      senderName: currentUserName,
+    }]);
     try {
       await fetch("/api/chat/send", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ channelName, message: text, senderName: "User" }),
+        body: JSON.stringify({
+          channelName,
+          message: text,
+          senderId: currentUserId,
+          senderName: currentUserName,
+        }),
       });
     } catch (e) { console.error(e); }
-  }, [channelName]);
+  }, [channelName, currentUserId, currentUserName]);
 
   if (!channelName) return <div className="h-screen flex items-center justify-center font-bold">Error: Channel ID diperlukan di URL</div>;
 
@@ -169,7 +235,7 @@ function VideoCallContent() {
 
         {/* Main Area */}
         <div className="flex-1 min-h-0 grid grid-cols-1 md:grid-cols-[1fr_350px] md:gap-4 md:p-4 bg-gray-50/50">
-          <div className="relative flex items-center justify-center overflow-hidden md:rounded-[2rem] bg-white border shadow-xl">
+          <div className="relative flex items-center justify-center overflow-hidden md:rounded-4xl bg-white border shadow-xl">
             {isConnected ? (
               <>
                 {remoteVideoTrack ? (
@@ -190,7 +256,7 @@ function VideoCallContent() {
           </div>
 
           {/* Desktop Sidebar */}
-          <div className="hidden md:flex flex-col bg-white rounded-[2rem] border overflow-hidden shadow-xl">
+          <div className="hidden md:flex flex-col bg-white rounded-4xl border overflow-hidden shadow-xl">
             <div className="flex p-2 bg-gray-50 border-b gap-1">
               {["chat", "notes"].map((t) => (
                 <button key={t} onClick={() => setActiveTab(t as Tab)} className={`flex-1 py-2 text-[11px] font-bold rounded-full uppercase ${activeTab === t ? "bg-white text-blue-600 shadow-sm" : "text-gray-400"}`}>
@@ -214,7 +280,7 @@ function VideoCallContent() {
 
         {/* Mobile Overlay */}
         {mobChatOpen && (
-          <div className="fixed inset-0 z-[100] bg-white flex flex-col md:hidden">
+          <div className="fixed inset-0 z-100 bg-white flex flex-col md:hidden">
             <header className="p-4 border-b flex justify-between items-center"><button onClick={() => setMobChatOpen(false)} className="text-blue-900 font-bold">✕ Tutup</button><span className="text-xs font-black uppercase">Chat Sesi</span><div className="w-10"/></header>
             <ChatPanel messages={messages} onSend={sendMessage} />
           </div>

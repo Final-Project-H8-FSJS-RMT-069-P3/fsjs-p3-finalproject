@@ -152,7 +152,9 @@ export async function POST(req: Request) {
       const uid =
         parseInt(currentUserId.replace(/\D/g, "").slice(0, 8), 10) || 0;
 
+      const currentTimestamp = Math.floor(Date.now() / 1000);
       const privilegeExpiredTs = Math.floor(Date.now() / 1000) + 3600;
+      const tokenExpiredTs = currentTimestamp + 3600;
 
       const token = RtcTokenBuilder.buildTokenWithUid(
         APP_ID,
@@ -160,6 +162,7 @@ export async function POST(req: Request) {
         channelName,
         uid,
         RtcRole.PUBLISHER,
+        tokenExpiredTs,
         privilegeExpiredTs
       );
 

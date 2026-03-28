@@ -6,7 +6,7 @@
 "use client";
 
 import { useState, useEffect, useRef, useCallback } from "react";
-import AgoraRTC, {
+import type {
   IAgoraRTCClient,
   ICameraVideoTrack,
   IMicrophoneAudioTrack,
@@ -80,6 +80,8 @@ export function useAgoraVideoCall({
     setState((s) => ({ ...s, connectionState: "connecting", error: null }));
 
     try {
+      const { default: AgoraRTC } = await import("agora-rtc-sdk-ng");
+
       const { token, appId, uid } = await callVideoAPI("join", {
         channelName,
       });
@@ -137,7 +139,7 @@ export function useAgoraVideoCall({
 
       const [audioTrack, videoTrack] =
         await AgoraRTC.createMicrophoneAndCameraTracks(
-          { echoCancellation: true, noiseSuppression: true },
+          { AEC: true, ANS: true, AGC: true },
           { encoderConfig: "720p_1" }
         );
 
