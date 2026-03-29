@@ -22,6 +22,19 @@ interface FormBriefPageProps {
     userId: string;
   };
 }
+function parseBrief(briefData: unknown): Brief {
+  if (!briefData) return {};
+
+  try {
+    if (typeof briefData === "string") {
+      return JSON.parse(briefData);
+    }
+    return briefData as Brief;
+  } catch (err) {
+    console.error("Parse error:", briefData);
+    return {};
+  }
+}
 
 export default async function FormBriefPage({ params }: FormBriefPageProps) {
   // 1️⃣ Auth check
@@ -42,6 +55,7 @@ export default async function FormBriefPage({ params }: FormBriefPageProps) {
         Cookie:cookiesStore.getAll().map((cookie) => `${cookie.name}=${cookie.value}`).join("; ") 
       }
     });
+    console.log("RES:", res);
     
     if (res.ok) {
       data = (await res.json()) as FormBriefItem[];
@@ -62,11 +76,12 @@ export default async function FormBriefPage({ params }: FormBriefPageProps) {
       ) : (
         <div className="space-y-4">
           {data.map((item) => {
-            const brief = item.brief || {};
+            const brief = parseBrief(item.brief);
+            
             return (
               <div key={item._id} className="bg-white p-5 rounded-xl shadow border">
                 <p>
-                  <strong>Nama:</strong> {brief.nama || "-"}
+                  <strong>Nama:</strong> {brief.nama}
                 </p>
                 <p>
                   <strong>Keluhan:</strong>{" "}
