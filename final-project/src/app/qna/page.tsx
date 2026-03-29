@@ -3,7 +3,91 @@
 import Link from "next/link";
 import { useState } from "react";
 
-const STEPS = [
+type Step = {
+  id: number;
+  label: string;
+  icon: string;
+};
+
+type MoodOption = {
+  value: string;
+  label: string;
+  emoji: string;
+};
+
+interface FormState {
+  nama: string;
+  usia: string;
+  jenisKelamin: string;
+  statusPernikahan: string;
+  pekerjaan: string;
+  domisili: string;
+  keluhanUtama: string[];
+  keluhanLainnya: string;
+  durasiKeluhan: string;
+  intensitas: number;
+  pernahKonsultasi: string;
+  riwayatTerapi: string;
+  riwayatMedis: string;
+  konsumsiObat: string;
+  namaObat: string;
+  riwayatKeluarga: string;
+  mood: string;
+  polaTidur: string;
+  jamTidur: number;
+  nafsuMakan: string;
+  aktivitasSosial: string;
+  deskripsi: string;
+  tujuan: string;
+  harapan: string;
+  preferensi: string;
+  tambahan: string;
+}
+
+type UpdateForm = <K extends keyof FormState>(
+  field: K,
+  value: FormState[K],
+) => void;
+
+type StepProps = {
+  data: FormState;
+  update: UpdateForm;
+};
+
+type Step2Props = StepProps & {
+  toggleKeluhan: (item: string) => void;
+};
+
+type LabelProps = {
+  children: React.ReactNode;
+  required?: boolean;
+};
+
+type FieldProps = {
+  label: string;
+  required?: boolean;
+  children: React.ReactNode;
+};
+
+type PillRadioProps = {
+  options: string[];
+  value: string;
+  onChange: (value: string) => void;
+};
+
+type SectionHeaderProps = {
+  badge: string;
+  title: string;
+  desc: string;
+};
+
+type TextInputProps = React.InputHTMLAttributes<HTMLInputElement>;
+type SelectInputProps = React.SelectHTMLAttributes<HTMLSelectElement> & {
+  children: React.ReactNode;
+};
+type TextareaInputProps = React.TextareaHTMLAttributes<HTMLTextAreaElement>;
+
+const STEPS: Step[] = [
   { id: 1, label: "Data Diri", icon: "👤" },
   { id: 2, label: "Keluhan", icon: "💬" },
   { id: 3, label: "Riwayat", icon: "📋" },
@@ -38,7 +122,7 @@ const DURASI_LIST = [
   "Lebih dari 1 tahun",
 ];
 
-const MOOD_LIST = [
+const MOOD_LIST: MoodOption[] = [
   { value: "sangat_buruk", label: "Sangat Buruk", emoji: "😞" },
   { value: "buruk", label: "Buruk", emoji: "😔" },
   { value: "biasa", label: "Biasa Saja", emoji: "😐" },
@@ -48,7 +132,7 @@ const MOOD_LIST = [
 
 // ─── Atomic UI ────────────────────────────────────────────────────────────────
 
-function Label({ children, required }) {
+function Label({ children, required }: LabelProps) {
   return (
     <label className="block text-sm font-bold text-blue-900 mb-2">
       {children}
@@ -57,7 +141,7 @@ function Label({ children, required }) {
   );
 }
 
-function TextInput({ ...props }) {
+function TextInput({ ...props }: TextInputProps) {
   return (
     <input
       {...props}
@@ -68,7 +152,7 @@ function TextInput({ ...props }) {
   );
 }
 
-function SelectInput({ children, ...props }) {
+function SelectInput({ children, ...props }: SelectInputProps) {
   return (
     <select
       {...props}
@@ -81,7 +165,7 @@ function SelectInput({ children, ...props }) {
   );
 }
 
-function TextareaInput({ ...props }) {
+function TextareaInput({ ...props }: TextareaInputProps) {
   return (
     <textarea
       {...props}
@@ -92,7 +176,7 @@ function TextareaInput({ ...props }) {
   );
 }
 
-function Field({ label, required, children }) {
+function Field({ label, required, children }: FieldProps) {
   return (
     <div className="mb-5">
       <Label required={required}>{label}</Label>
@@ -101,7 +185,7 @@ function Field({ label, required, children }) {
   );
 }
 
-function PillRadio({ options, value, onChange }) {
+function PillRadio({ options, value, onChange }: PillRadioProps) {
   return (
     <div className="flex flex-wrap gap-3">
       {options.map((opt) => (
@@ -123,7 +207,7 @@ function PillRadio({ options, value, onChange }) {
   );
 }
 
-function SectionHeader({ badge, title, desc }) {
+function SectionHeader({ badge, title, desc }: SectionHeaderProps) {
   return (
     <div className="mb-8">
       <span className="inline-block py-1 px-4 rounded-full bg-blue-100 text-blue-700 text-xs font-bold uppercase tracking-wider mb-3">
@@ -139,7 +223,7 @@ function SectionHeader({ badge, title, desc }) {
 
 // ─── Step Panels ─────────────────────────────────────────────────────────────
 
-function Step1({ data, update }) {
+function Step1({ data, update }: StepProps) {
   return (
     <div>
       <SectionHeader
@@ -207,7 +291,7 @@ function Step1({ data, update }) {
   );
 }
 
-function Step2({ data, update, toggleKeluhan }) {
+function Step2({ data, update, toggleKeluhan }: Step2Props) {
   return (
     <div>
       <SectionHeader
@@ -317,7 +401,7 @@ function Step2({ data, update, toggleKeluhan }) {
   );
 }
 
-function Step3({ data, update }) {
+function Step3({ data, update }: StepProps) {
   return (
     <div>
       <SectionHeader
@@ -388,7 +472,7 @@ function Step3({ data, update }) {
   );
 }
 
-function Step4({ data, update }) {
+function Step4({ data, update }: StepProps) {
   return (
     <div>
       <SectionHeader
@@ -405,7 +489,7 @@ function Step4({ data, update }) {
               type="button"
               onClick={() => update("mood", m.value)}
               className={`flex flex-col items-center gap-1.5 px-5 py-3 rounded-2xl border-2
-                transition-all duration-200 active:scale-95 min-w-[80px]
+                transition-all duration-200 active:scale-95 min-w-20
                 ${
                   data.mood === m.value
                     ? "border-blue-900 bg-blue-50 shadow-lg shadow-blue-100"
@@ -494,7 +578,7 @@ function Step4({ data, update }) {
   );
 }
 
-function Step5({ data, update }) {
+function Step5({ data, update }: StepProps) {
   return (
     <div>
       <SectionHeader
@@ -576,7 +660,7 @@ function Step5({ data, update }) {
 export default function PreConsultationForm() {
   const [step, setStep] = useState(1);
   const [submitted, setSubmitted] = useState(false);
-  const [form, setForm] = useState({
+  const [form, setForm] = useState<FormState>({
     nama: "",
     usia: "",
     jenisKelamin: "",
@@ -609,14 +693,14 @@ export default function PreConsultationForm() {
     tambahan: "",
   });
 
-  const update = (field, value) =>
+  const update: UpdateForm = (field, value) =>
     setForm((prev) => ({ ...prev, [field]: value }));
 
-  const toggleKeluhan = (item) =>
+  const toggleKeluhan = (item: string) =>
     setForm((prev) => ({
       ...prev,
       keluhanUtama: prev.keluhanUtama.includes(item)
-        ? prev.keluhanUtama.filter((k) => k !== item)
+        ? prev.keluhanUtama.filter((k: string) => k !== item)
         : [...prev.keluhanUtama, item],
     }));
 
@@ -631,10 +715,33 @@ export default function PreConsultationForm() {
 
   const progress = ((step - 1) / (STEPS.length - 1)) * 100;
 
+  async function analyzeApi(form: FormState) {
+    try {
+      const response = await fetch("/api/ai-psikolog", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ type: "analyze", form }),
+      });
+      if (!response.ok) {
+        throw new Error("Gagal menganalisis data");
+      }
+    } catch (error) {
+      console.error("Error saat analisis:", error);
+    }
+  }
+  const handleSubmit = async () => {
+    try {
+      await analyzeApi(form);
+      setSubmitted(true);
+    } catch (error) {
+      console.error("Error saat submit:", error);
+    }
+  };
+
   if (submitted) {
     return (
       <div className="min-h-screen bg-[#f8f9ff] flex items-center justify-center px-4 py-20">
-        <div className="max-w-md w-full bg-white rounded-[2rem] p-10 text-center shadow-xl border border-blue-50">
+        <div className="max-w-md w-full bg-white rounded-4xl p-10 text-center shadow-xl border border-blue-50">
           <div className="w-20 h-20 bg-blue-50 rounded-full flex items-center justify-center mx-auto mb-6">
             <svg
               className="w-10 h-10 text-blue-900"
@@ -718,8 +825,8 @@ export default function PreConsultationForm() {
                     step > s.id
                       ? "bg-blue-900 border-blue-900 text-white"
                       : step === s.id
-                      ? "bg-white border-blue-900 text-blue-900 shadow-lg shadow-blue-100"
-                      : "bg-white border-gray-200 text-gray-400"
+                        ? "bg-white border-blue-900 text-blue-900 shadow-lg shadow-blue-100"
+                        : "bg-white border-gray-200 text-gray-400"
                   }`}
                 >
                   {step > s.id ? (
@@ -747,7 +854,7 @@ export default function PreConsultationForm() {
           </div>
         </div>
 
-        <div className="bg-white rounded-[2rem] shadow-sm border border-gray-100 p-8 sm:p-10">
+        <div className="bg-white rounded-4xl shadow-sm border border-gray-100 p-8 sm:p-10">
           {step === 1 && <Step1 data={form} update={update} />}
           {step === 2 && (
             <Step2 data={form} update={update} toggleKeluhan={toggleKeluhan} />
@@ -805,7 +912,7 @@ export default function PreConsultationForm() {
               </button>
             ) : (
               <button
-                onClick={() => canNext() && setSubmitted(true)}
+                onClick={handleSubmit}
                 disabled={!canNext()}
                 className={`flex items-center gap-2 px-8 py-3 rounded-xl font-bold text-sm
                   transition-all active:scale-95
