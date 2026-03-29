@@ -84,7 +84,7 @@ export default function PaymentCheckoutClient({
         email,
       },
     }),
-    [amount, bookingId, email, firstName, itemId, itemName, orderId],
+    [amount, bookingId, email, firstName, itemId, itemName, orderId]
   );
 
   useEffect(() => {
@@ -150,7 +150,9 @@ export default function PaymentCheckoutClient({
 
       if (!response.ok) {
         const errorData = data as { error?: string };
-        throw new Error(errorData.error || "Failed to create payment transaction");
+        throw new Error(
+          errorData.error || "Failed to create payment transaction"
+        );
       }
 
       const successData = data as PaymentApiResponse;
@@ -165,24 +167,33 @@ export default function PaymentCheckoutClient({
 
   return (
     <main className="min-h-screen bg-slate-50 py-10 px-4">
-      <div className="mx-auto w-full max-w-3xl">
-        <div className="mb-6">
-          <Link href="/" className="text-sm font-semibold text-blue-700 hover:underline">
+      <div className=" mx-auto w-full">
+        <div className="mb-6 text-center">
+          <Link
+            href="/"
+            className="text-sm font-semibold text-blue-700 hover:underline"
+          >
             Kembali ke Home
           </Link>
-          <h1 className="mt-2 text-3xl font-extrabold text-slate-900">Payment Checkout</h1>
+          <h1 className="mt-2 text-3xl font-extrabold text-slate-900">
+            Payment Checkout
+          </h1>
         </div>
 
-        <div className="grid gap-6 lg:grid-cols-[1.25fr_1fr]">
+        <div className="content-center mx-auto max-w-2xl">
           <form
             onSubmit={handleSubmit}
             className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm"
           >
-            <h2 className="text-lg font-bold text-slate-900">Data Pembayaran</h2>
+            <h2 className="text-lg font-bold text-slate-900">
+              Data Pembayaran
+            </h2>
 
             <div className="mt-4 space-y-4">
               <div>
-                <label className="mb-1 block text-sm font-semibold text-slate-700">Order ID</label>
+                <label className="mb-1 block text-sm font-semibold text-slate-700">
+                  Order ID
+                </label>
                 <div className="w-full rounded-lg border border-slate-200 bg-slate-100 px-3 py-2 text-sm text-slate-700">
                   {orderId}
                 </div>
@@ -190,13 +201,17 @@ export default function PaymentCheckoutClient({
 
               <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                 <div>
-                  <label className="mb-1 block text-sm font-semibold text-slate-700">Item ID</label>
+                  <label className="mb-1 block text-sm font-semibold text-slate-700">
+                    Item ID
+                  </label>
                   <div className="w-full rounded-lg border border-slate-200 bg-slate-100 px-3 py-2 text-sm text-slate-700">
                     {itemId}
                   </div>
                 </div>
                 <div>
-                  <label className="mb-1 block text-sm font-semibold text-slate-700">Item Name</label>
+                  <label className="mb-1 block text-sm font-semibold text-slate-700">
+                    Item Name
+                  </label>
                   <div className="w-full rounded-lg border border-slate-200 bg-slate-100 px-3 py-2 text-sm text-slate-700">
                     {itemName}
                   </div>
@@ -204,7 +219,9 @@ export default function PaymentCheckoutClient({
               </div>
 
               <div>
-                <label className="mb-1 block text-sm font-semibold text-slate-700">Amount (IDR)</label>
+                <label className="mb-1 block text-sm font-semibold text-slate-700">
+                  Amount (IDR)
+                </label>
                 <div className="w-full rounded-lg border border-slate-200 bg-blue-50 px-3 py-2 text-sm font-bold text-blue-900">
                   {formatIDR(amount)}
                 </div>
@@ -212,7 +229,9 @@ export default function PaymentCheckoutClient({
 
               <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                 <div>
-                  <label className="mb-1 block text-sm font-semibold text-slate-700">First Name</label>
+                  <label className="mb-1 block text-sm font-semibold text-slate-700">
+                    First Name
+                  </label>
                   <input
                     type="text"
                     value={firstName}
@@ -223,13 +242,17 @@ export default function PaymentCheckoutClient({
                   />
                 </div>
                 <div>
-                  <label className="mb-1 block text-sm font-semibold text-slate-700">Email</label>
+                  <label className="mb-1 block text-sm font-semibold text-slate-700">
+                    Email
+                  </label>
                   <input
                     type="email"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none ring-blue-200 focus:ring"
-                    placeholder={profileLoading ? "Memuat..." : "email@contoh.com"}
+                    placeholder={
+                      profileLoading ? "Memuat..." : "email@contoh.com"
+                    }
                     required
                   />
                 </div>
@@ -254,14 +277,6 @@ export default function PaymentCheckoutClient({
                 : "Bayar Sekarang"}
             </button>
           </form>
-
-          <aside className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-            <h2 className="text-lg font-bold text-slate-900">Request Payload Preview</h2>
-            <p className="mt-2 text-xs text-slate-500">Konten yang dikirim ke endpoint POST /api/payment.</p>
-            <pre className="mt-4 overflow-x-auto rounded-lg bg-slate-900 p-4 text-xs text-slate-100">
-              {JSON.stringify(payload, null, 2)}
-            </pre>
-          </aside>
         </div>
       </div>
     </main>
