@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { StartSessionButton } from "./StartSessionButton";
 import { useSession } from "next-auth/react";
+import { useRouter } from "next/navigation";
 
 type Booking = {
   _id: string;
@@ -53,6 +54,8 @@ export default function BookingListPage() {
   const [role, setRole] = useState<"USER" | "DOCTOR" | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  const router = useRouter();
 
   const sessionRole = String(session?.user?.role || "").toLowerCase();
   const isPsychiatrist =
@@ -163,13 +166,12 @@ export default function BookingListPage() {
                             if (!isPsychiatrist) return;
                             if (!booking.userId) {
                               // avoid navigating with undefined userId
-                              console.warn(
-                                "Skipping navigation: missing userId for booking",
-                                booking._id,
+                              alert(
+                                `Skipping navigation: missing userId for booking ${booking._id}`
                               );
                               return;
                             }
-                            window.location.href = `/formbrief?userId=${encodeURIComponent(booking.userId)}`;
+                            router.push(`/formbrief/${encodeURIComponent(booking.userId)}`)
                           }}
                         >
                           <td className="px-4 py-3 text-slate-700">

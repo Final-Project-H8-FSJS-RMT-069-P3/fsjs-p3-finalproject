@@ -1,12 +1,5 @@
 import { auth } from "@/lib/auth";
 import { redirect } from "next/navigation";
-import { headers } from "next/headers";
-
-interface FormBriefPageProps {
-  searchParams?: {
-    userId?: string;
-  };
-}
 
 interface Brief {
   nama?: string;
@@ -22,39 +15,38 @@ interface FormBriefItem {
   result?: string;
 }
 
-export default async function FormBriefPage({
-  searchParams,
-}: FormBriefPageProps) {
+interface FormBriefPageProps {
+  params: {
+    userId: string;
+  };
+}
+
+export default async function FormBriefPage({ params }: FormBriefPageProps) {
+  // 1️⃣ Auth check
   const session = await auth();
+  if (!session?.user) redirect("/login");
+  if (session.user.role !== "DOCTOR") redirect("/");
 
-  if (!session || !session.user) {
-    redirect("/login");
-  }
+  // 2️⃣ Get userId from params
+  const {userId} = await params;
+  console.log("UserId:", userId);
 
-  if (session.user.role !== "DOCTOR") {
-    redirect("/");
-  }
-
-  const userId = searchParams?.userId;
-  if (!userId) {
-    redirect("/");
-  }
-
-  // await headers() to get ReadonlyHeaders (fixes TS2339)
-  const hdrs = await headers();
-  const host = hdrs.get("x-forwarded-host") || hdrs.get("host") || "localhost:3000";
-  const proto = hdrs.get("x-forwarded-proto") || "http";
-  const baseUrl = `${proto}://${host}`;
-
-  const res = await fetch(
-    `${baseUrl}/api/formbrief?userId=${encodeURIComponent(userId)}`,
-    {
+  // 3️⃣ Fetch data from API (server component can use relative URL)
+  let data: FormBriefItem[] = [];
+  try {
+    const res = await fetch(`/api/formbrief?userId=${encodeURIComponent(userId)}`, {
       cache: "no-store",
-    },
-  );
+    });
+    if (res.ok) {
+      data = (await res.json()) as FormBriefItem[];
+    } else {
+      console.warn("API returned non-ok status:", res.status);
+    }
+  } catch (err) {
+    console.error("Failed to fetch form brief data:", err);
+  }
 
-  const data: FormBriefItem[] = res.ok ? await res.json() : [];
-
+  // 4️⃣ Render JSX
   return (
     <div className="min-h-screen p-10 bg-gray-50">
       <h1 className="text-2xl font-bold mb-6">Form Brief List</h1>
@@ -63,14 +55,10 @@ export default async function FormBriefPage({
         <p className="text-gray-500">No data available for this user</p>
       ) : (
         <div className="space-y-4">
-          {data.map((item: FormBriefItem) => {
+          {data.map((item) => {
             const brief = item.brief || {};
-
             return (
-              <div
-                key={item._id}
-                className="bg-white p-5 rounded-xl shadow border"
-              >
+              <div key={item._id} className="bg-white p-5 rounded-xl shadow border">
                 <p>
                   <strong>Nama:</strong> {brief.nama || "-"}
                 </p>
@@ -84,11 +72,9 @@ export default async function FormBriefPage({
                 <p>
                   <strong>Mood:</strong> {brief.mood || "-"}
                 </p>
-
                 <p className="mt-2 text-xs text-gray-400">
                   Created: {new Date(item.createdAt).toLocaleString()}
                 </p>
-
                 {item.result && (
                   <div className="mt-3 p-3 bg-blue-50 rounded-lg text-sm text-blue-900">
                     <strong>AI Result:</strong>
