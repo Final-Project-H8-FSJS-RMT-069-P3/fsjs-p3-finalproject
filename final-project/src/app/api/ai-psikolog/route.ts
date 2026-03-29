@@ -11,14 +11,15 @@ if (!GeminiApiKey) throw new Error("Gemini API Key missing");
 const genAI = new GoogleGenerativeAI(GeminiApiKey as string);
 
 const geminiModel = [
-  "gemini-2.5-flash",
   "gemini-2.5-flash-lite",
   "gemini-1.5-flash",
 ];
 
 const OpenRouterModel = [
-  "arcee-ai/trinity-large-preview:free",
-  "openai/gpt-oss-20b:free",
+"arcee-ai/trinity-large-preview:free",
+"openai/gpt-oss-20b:free",
+"nvidia/nemotron-3-super-120b-a12b:free",
+  "liquid/lfm-2.5-1.2b-thinking:free",
 ];
 
 const ChatPrompt = `
@@ -30,110 +31,21 @@ const ChatPrompt = `
         4. Jangan pernah memberikan saran medis atau psikologis yang spesifik, selalu arahkan untuk konsultasi dengan profesional yang dimiliki jika diperlukan.
         5. Tawarkan di setiap akhir jawaban agar dibantu terhubung dengan psikolog setelah menjawab pertanyaan dari pengguna. Jika pengguna setuju, jawab dengan: "Baik, saya akan membantu menghubungkan Anda dengan psikolog kami. Silakan tunggu sebentar."
       `;
-
-
-const AnalyzeSystemPrompt = `
-Kamu adalah AI clinical assistant yang membantu psikolog profesional...
-(TANPA aturan penolakan user)
-`;
-
-async function callGeminiAPI(message: string,systemPrompt: string, history?: Content[]) {
-  for (const modelName of geminiModel) {
-    try {
-      const model = genAI.getGenerativeModel({
-        model: modelName,
-        systemInstruction: systemPrompt,
-      });
-
-      const chat = model.startChat({
-        history: history || [],
-        generationConfig: {
-          maxOutputTokens: 5000,
-          temperature: 0.5,
-        },
-      });
-
-      const result = await chat.sendMessage(message);
-      const response = await result.response;
-      return response.text();
-    } catch (error) {
-      console.error(`Error with model ${modelName}:`, error);
-    }
-  }
-  throw Error("Semua model Gemini gagal merespons.");
-}
-
-async function callOpenRouterAPI(message: string, history?: Content[]) {
-  for (const modelName of OpenRouterModel) {
-    try {
-      const response = await fetch(
-        "https://openrouter.ai/api/v1/chat/completions",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${openRouterApiKey}`,
-          },
-          body: JSON.stringify({
-            model: modelName,
-            messages: [
-              { role: "system", content: Prompt },
-              ...(history || []),
-              { role: "user", content: message },
-            ],
-          }),
-        },
-      );
-
-      if (!response.ok) {
-        throw Error(`OpenRouter API error: ${response.statusText}`);
-      }
-
-      const data = await response.json();
-      return data.choices[0].message.content;
-    } catch (error) {
-      console.error(`Error with OpenRouter model ${modelName}:`, error);
-    }
-  }
-  throw Error("Semua model OpenRouter gagal merespons.");
-}
-
-export async function POST(req: NextRequest) {
-  try {
-    const session = await auth();
-    if (!session) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-    const userId = session.user.id;
-
-    if (!GeminiApiKey && !openRouterApiKey) {
-      return NextResponse.json(
-        { error: "API Key belum dikonfigurasi" },
-        { status: 500 },
-      );
-    }
-
-    const body = await req.json();
-    const {
-      message,
-      history,
-      type,
-      form,
-    }: { message: string; history?: Content[]; type: string; form?: any } =
-      body;
-
-    if (type === "analyze") {
-      const analizePrompt = `Kamu adalah AI clinical assistant yang membantu psikolog profesional dalam melakukan asesmen awal klien.
+const analyzePrompt = `Kamu adalah AI clinical assistant yang membantu psikolog profesional dalam melakukan asesmen awal klien.
 
                                 PENTING:
+                                -Bahasa indonesia 
                                 - Output hanya untuk psikolog, bukan untuk klien
                                 - Gunakan bahasa profesional (psikologi klinis), bukan bahasa awam
                                 - Hindari kesimpulan diagnosis final
                                 - Fokus pada hipotesis klinis awal berbasis data
+                                - Jika suatu informasi tidak tersedia, tulis: "data tidak tersedia"
+                                - Jangan buat asumsi tanpa data yang jelas
+                                - Hanya mengikuti data yang diberikan, jangan menambahkan informasi dari luar
 
                                 ========================
                                 DATA KLIEN:
-                                ${JSON.stringify(form)}
+                    
                                 ========================
 
                                 Berikan output dengan struktur berikut:
@@ -143,6 +55,7 @@ export async function POST(req: NextRequest) {
                                 - presenting issues
                                 - durasi
                                 - konteks utama
+                                - preferensi layanan: online / offline / keduanya
 
                                 2. PRELIMINARY CLINICAL IMPRESSION
                                 Hipotesis awal (bukan diagnosis) berdasarkan DSM-5 framework jika memungkinkan.
@@ -193,9 +106,114 @@ export async function POST(req: NextRequest) {
                                 - profesional
                                 - ringkas tapi tajam
                                 - tidak menghakimi
-                                - tidak terlalu verbose`;
+                                - tidak terlalu verbose
+                                
+                                `;
+
+const maxHistory= 10;   
+function limitHistory(history: Content[]) {
+ if(!history) return [];
+  return history.slice(-maxHistory);
+  }
+                                
+async function callGeminiAPI(message: string,systemPrompt: string, history?: Content[]) {
+  for (const modelName of geminiModel) {
+    try {
+      const model = genAI.getGenerativeModel({
+        model: modelName,
+        systemInstruction: systemPrompt,
+      });
+      const limitedHistory = limitHistory(history || []);
+
+      const chat = model.startChat({
+        history: limitedHistory,
+        generationConfig: {
+          maxOutputTokens: 1000,
+          temperature: 0.5,
+        },
+      });
+
+      const result = await chat.sendMessage(message);
+      const response = await result.response;
+      return response.text();
+    } catch (error) {
+      console.error(`Error with model ${modelName}:`, error);
+    }
+  }
+  throw Error("Semua model Gemini gagal merespons.");
+}
+function normalizeOpenRouterHistory(history: Content[] ) {
+  if (!history) return [];
+  return history.map((item) => ({
+    role: item.role==="model" ? "assistant" : item.role, 
+    content: item.parts?.[0]?.text || "",
+    
+  }));
+}
+async function callOpenRouterAPI(message: string, systemPrompt: string, history?: Content[]) {
+  for (const modelName of OpenRouterModel) {
+    try {
+       const normalizedHistory = normalizeOpenRouterHistory(limitHistory(history || []));
+      const response = await fetch(
+        "https://openrouter.ai/api/v1/chat/completions",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${openRouterApiKey}`,
+          },
+          body: JSON.stringify({
+            model: modelName,
+            messages: [
+              { role: "system", content: systemPrompt },
+              ...normalizedHistory,
+              { role: "user", content: message },
+            ],
+          }),
+        },
+      );
+
+      if (!response.ok) {
+        throw Error(`OpenRouter API error: ${response.statusText}`);
+      }
+
+      const data = await response.json();
+      return data.choices[0].message.content;
+    } catch (error) {
+      console.error(`Error with OpenRouter model ${modelName}:`, error);
+    }
+  }
+  throw Error("Semua model OpenRouter gagal merespons.");
+}
+
+export async function POST(req: NextRequest) {
+  try {
+    const session = await auth();
+    if (!session) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+    const userId = session.user.id;
+
+    if (!GeminiApiKey && !openRouterApiKey) {
+      return NextResponse.json(
+        { error: "API Key belum dikonfigurasi" },
+        { status: 500 },
+      );
+    }
+
+    const body = await req.json();
+    const {
+      message,
+      history,
+      type,
+      form,
+    }: { message: string; history?: Content[]; type: string; form?: any } =
+      body;
+
+    if (type === "analyze") {
+      
       try {
-        const result = await callGeminiAPI(analizePrompt, AnalyzeSystemPrompt);
+        const result = await callGeminiAPI(JSON.stringify(form), analyzePrompt);
         await FormBrief.create({
           _id: new ObjectId(),
           userId: new ObjectId(userId),
@@ -203,9 +221,17 @@ export async function POST(req: NextRequest) {
           result: result,
           createdAt: new Date(),
         });
-        return NextResponse.json({ response: result });
-      } catch (err) {
-        console.error("Gemini API error:", err);
+        return NextResponse.json({ response: result, });
+      } catch  {
+        const result = await callOpenRouterAPI(JSON.stringify(form), analyzePrompt);
+        await FormBrief.create({
+          _id: new ObjectId(),
+          userId: new ObjectId(userId),
+          brief: JSON.stringify(form),
+          result: result,
+          createdAt: new Date(),
+        });
+        return NextResponse.json({ response: result }); 
       }
     }
     if (!message) {
@@ -216,21 +242,26 @@ export async function POST(req: NextRequest) {
     }
     try {
       const result = await callGeminiAPI(message, ChatPrompt, history);
-      return NextResponse.json({ response: result });
-    } catch (err) {
-      console.error("Gemini API error:", err);
+      return NextResponse.json({ 
+        response: result,
+        history: [...(history || []), { role: "user", content: message }, { role: "model", content: result }],
+       });
+    } catch (error) {
+      console.error("(Gemini gagal, fallback ke OpenRouter)");
     }
     try {
-      const result = await callOpenRouterAPI(message, history);
+      const result = await callOpenRouterAPI(message, ChatPrompt  , history);
       return NextResponse.json({ response: result });
-    } catch (err) {
-      console.error("OpenRouter API error:", err);
+    } catch (error) {
+      console.error("OpenRouter API error:");
     }
   } catch (error) {
     console.error("Unexpected error:", error);
+
     return NextResponse.json(
       { error: "Terjadi kesalahan pada server" },
       { status: 500 },
     );
+
   }
 }
