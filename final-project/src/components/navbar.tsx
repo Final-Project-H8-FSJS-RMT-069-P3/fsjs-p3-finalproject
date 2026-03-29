@@ -9,6 +9,11 @@ export default function Navbar() {
   const [menuOpen, setMenuOpen] = useState(false);
   const { data: session } = useSession();
   const router = useRouter();
+  const qnaHref = session ? "/qna" : "/login";
+  const sessionRole = String(session?.user?.role || "").toLowerCase();
+  const isPsychiatrist =
+    sessionRole === "doctor" || sessionRole === "psychiatrist";
+  const brandTitle = isPsychiatrist ? "pendengarMu - Dokter" : "pendengarMu";
 
   const handleLogout = async () => {
     await signOut({ redirect: false });
@@ -19,7 +24,13 @@ export default function Navbar() {
     <nav className="fixed top-0 w-full z-50 bg-white/80 backdrop-blur-md shadow-sm">
       <div className="flex justify-between items-center px-6 py-4 max-w-7xl mx-auto">
         <div className="text-2xl font-black text-blue-900 tracking-tighter">
-          pendengarMu
+          <Link
+            key="home"
+            href="/"
+            className=""
+          >
+            {brandTitle}
+          </Link>
         </div>
 
         <div className="hidden md:flex items-center space-x-8 text-sm font-medium">
@@ -44,20 +55,15 @@ export default function Navbar() {
           >
             Tentang kami
           </Link>
-          <Link
-            key="kontenpsikologi"
-            href="/qna"
-            className="text-gray-500 hover:text-blue-700 transition-colors"
-          >
-            Konsultasi
-          </Link>
-          <Link
-            key="bookinglist"
-            href="/bookinglist"
-            className="text-gray-500 hover:text-blue-700 transition-colors"
-          >
-          List booking
-          </Link>
+          {session && (
+            <Link
+              key="bookinglist"
+              href="/bookinglist"
+              className="text-gray-500 hover:text-blue-700 transition-colors"
+            >
+              List booking
+            </Link>
+          )}
           {session ? (
             <button
               onClick={handleLogout}
@@ -76,9 +82,9 @@ export default function Navbar() {
         </div>
 
         <div className="flex items-center gap-3">
-          <button className="bg-orange-500 text-white px-6 py-2.5 rounded-xl font-bold text-sm hover:opacity-90 active:scale-95 transition-all shadow-md hidden sm:block">
+          <Link href={qnaHref} className="bg-orange-500 text-white px-6 py-2.5 rounded-xl font-bold text-sm hover:opacity-90 active:scale-95 transition-all shadow-md hidden sm:block">
             Konseling Sekarang
-          </button>
+          </Link>
           <button
             className="md:hidden flex flex-col gap-1.5 p-1"
             onClick={() => setMenuOpen(!menuOpen)}
@@ -114,20 +120,15 @@ export default function Navbar() {
           >
             Tentang kami
           </Link>
-          <Link
-            key="kontenpsikologi"
-            href="/qna"
-            className="block py-3 text-sm font-medium text-gray-600 border-b border-gray-50"
-          >
-          Konsultasi
-          </Link>
-          <Link
-            key="bookinglist"
-            href="/bookinglist"
-            className="block py-3 text-sm font-medium text-gray-600 border-b border-gray-50"
-          >
-          List booking
-          </Link>
+          {session && (
+            <Link
+              key="bookinglist"
+              href="/bookinglist"
+              className="block py-3 text-sm font-medium text-gray-600 border-b border-gray-50"
+            >
+              List booking
+            </Link>
+          )}
           {session ? (
             <button
               onClick={handleLogout}
@@ -144,9 +145,12 @@ export default function Navbar() {
             </Link>
           )}
 
-          <button className="mt-4 w-full py-3 bg-orange-500 text-white font-bold rounded-xl">
+          <Link
+            href={qnaHref}
+            className="mt-4 block w-full py-3 bg-orange-500 text-white font-bold rounded-xl text-center"
+          >
             Konseling Sekarang
-          </button>
+          </Link>
         </div>
       )}
     </nav>

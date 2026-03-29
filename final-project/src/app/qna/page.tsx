@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 
 type Step = {
@@ -254,7 +255,7 @@ function Step1({ data, update }: StepProps) {
             value={data.jenisKelamin}
             onChange={(e) => update("jenisKelamin", e.target.value)}
           >
-            <option value="">Pilih jenis kelamin</option>
+            <option value="" disabled selected>Pilih jenis kelamin</option>
             <option>Laki-laki</option>
             <option>Perempuan</option>
             <option>Prefer tidak menyebutkan</option>
@@ -265,7 +266,7 @@ function Step1({ data, update }: StepProps) {
             value={data.statusPernikahan}
             onChange={(e) => update("statusPernikahan", e.target.value)}
           >
-            <option value="">Pilih status</option>
+            <option value="" disabled selected>Pilih status</option>
             <option>Belum menikah</option>
             <option>Menikah</option>
             <option>Bercerai</option>
@@ -361,7 +362,7 @@ function Step2({ data, update, toggleKeluhan }: Step2Props) {
             value={data.durasiKeluhan}
             onChange={(e) => update("durasiKeluhan", e.target.value)}
           >
-            <option value="">Pilih durasi</option>
+            <option value="" disabled selected>Pilih durasi</option>
             {DURASI_LIST.map((d) => (
               <option key={d}>{d}</option>
             ))}
@@ -515,7 +516,7 @@ function Step4({ data, update }: StepProps) {
             value={data.polaTidur}
             onChange={(e) => update("polaTidur", e.target.value)}
           >
-            <option value="">Pilih kondisi tidur</option>
+            <option value="" disabled selected>Pilih kondisi tidur</option>
             <option>Tidur nyenyak dan cukup</option>
             <option>Susah tidur (insomnia)</option>
             <option>Tidur terlalu banyak</option>
@@ -542,7 +543,7 @@ function Step4({ data, update }: StepProps) {
             value={data.nafsuMakan}
             onChange={(e) => update("nafsuMakan", e.target.value)}
           >
-            <option value="">Pilih kondisi</option>
+            <option value="" disabled selected>Pilih kondisi</option>
             <option>Normal seperti biasa</option>
             <option>Berkurang drastis</option>
             <option>Meningkat drastis</option>
@@ -554,7 +555,7 @@ function Step4({ data, update }: StepProps) {
             value={data.aktivitasSosial}
             onChange={(e) => update("aktivitasSosial", e.target.value)}
           >
-            <option value="">Pilih kondisi</option>
+            <option value="" disabled selected>Pilih kondisi</option>
             <option>Aktif dan bersemangat</option>
             <option>Mulai menarik diri</option>
             <option>Sangat menghindari orang</option>
@@ -592,7 +593,7 @@ function Step5({ data, update }: StepProps) {
           value={data.tujuan}
           onChange={(e) => update("tujuan", e.target.value)}
         >
-          <option value="">Pilih tujuan utama</option>
+          <option value="" disabled selected>Pilih tujuan utama</option>
           <option>Mencari solusi dari masalah spesifik</option>
           <option>Memahami diri sendiri lebih baik</option>
           <option>Mendapatkan dukungan emosional</option>
@@ -693,6 +694,8 @@ export default function PreConsultationForm() {
     tambahan: "",
   });
 
+  const router = useRouter()
+
   const update: UpdateForm = (field, value) =>
     setForm((prev) => ({ ...prev, [field]: value }));
 
@@ -730,13 +733,18 @@ export default function PreConsultationForm() {
     }
   }
   const handleSubmit = async () => {
-    try {
-      await analyzeApi(form);
-      setSubmitted(true);
-    } catch (error) {
-      console.error("Error saat submit:", error);
-    }
-  };
+  try {
+    await analyzeApi(form);
+    setSubmitted(true);
+
+    setTimeout(() => {
+      router.push("/listpsikolog");
+    }, 1500);
+
+  } catch (error) {
+    console.error("Error saat submit:", error);
+  }
+};
 
   if (submitted) {
     return (
@@ -774,7 +782,7 @@ export default function PreConsultationForm() {
           <button
             onClick={() => {
               setSubmitted(false);
-              setStep(1);
+              router.push('/listpsikolog')
             }}
             className="w-full bg-blue-900 text-white py-4 rounded-xl font-bold text-base
               hover:bg-blue-800 transition-all active:scale-95 shadow-lg shadow-blue-200"
