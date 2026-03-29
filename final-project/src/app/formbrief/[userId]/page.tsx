@@ -49,7 +49,7 @@ export default async function FormBriefPage({ params }: FormBriefPageProps) {
   let data: FormBriefItem[] = [];
   try {
     const cookiesStore=await cookies()
-    const res = await fetch(`http://localhost:3000/api/formbrief?userId=${encodeURIComponent(userId)}`, {
+    const res = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/formbrief?userId=${encodeURIComponent(userId)}`, {
       cache: "no-store",
       headers:{
         Cookie:cookiesStore.getAll().map((cookie) => `${cookie.name}=${cookie.value}`).join("; ") 
