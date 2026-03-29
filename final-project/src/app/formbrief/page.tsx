@@ -1,13 +1,30 @@
 import { auth } from "@/lib/auth";
 import { redirect } from "next/navigation";
+import { headers } from "next/headers";
 
 interface FormBriefPageProps {
-  params: {
-    userId: string;
+  searchParams?: {
+    userId?: string;
   };
 }
 
-export default async function FormBriefPage({ params }: FormBriefPageProps) {
+interface Brief {
+  nama?: string;
+  keluhanUtama?: string[];
+  durasiKeluhan?: string;
+  mood?: string;
+}
+
+interface FormBriefItem {
+  _id: string;
+  brief?: Brief;
+  createdAt: string;
+  result?: string;
+}
+
+export default async function FormBriefPage({
+  searchParams,
+}: FormBriefPageProps) {
   const session = await auth();
 
   if (!session || !session.user) {
@@ -18,13 +35,25 @@ export default async function FormBriefPage({ params }: FormBriefPageProps) {
     redirect("/");
   }
 
-  const { userId } = params;
+  const userId = searchParams?.userId;
+  if (!userId) {
+    redirect("/");
+  }
 
-  const res = await fetch(`/api/formbrief?userId=${userId}`, {
-    cache: "no-store",
-  });
+  // await headers() to get ReadonlyHeaders (fixes TS2339)
+  const hdrs = await headers();
+  const host = hdrs.get("x-forwarded-host") || hdrs.get("host") || "localhost:3000";
+  const proto = hdrs.get("x-forwarded-proto") || "http";
+  const baseUrl = `${proto}://${host}`;
 
-  const data = await res.json();
+  const res = await fetch(
+    `${baseUrl}/api/formbrief?userId=${encodeURIComponent(userId)}`,
+    {
+      cache: "no-store",
+    },
+  );
+
+  const data: FormBriefItem[] = res.ok ? await res.json() : [];
 
   return (
     <div className="min-h-screen p-10 bg-gray-50">
@@ -34,7 +63,7 @@ export default async function FormBriefPage({ params }: FormBriefPageProps) {
         <p className="text-gray-500">No data available for this user</p>
       ) : (
         <div className="space-y-4">
-          {data.map((item: any) => {
+          {data.map((item: FormBriefItem) => {
             const brief = item.brief || {};
 
             return (
@@ -42,13 +71,19 @@ export default async function FormBriefPage({ params }: FormBriefPageProps) {
                 key={item._id}
                 className="bg-white p-5 rounded-xl shadow border"
               >
-                <p><strong>Nama:</strong> {brief.nama || "-"}</p>
+                <p>
+                  <strong>Nama:</strong> {brief.nama || "-"}
+                </p>
                 <p>
                   <strong>Keluhan:</strong>{" "}
                   {brief.keluhanUtama?.join(", ") || "-"}
                 </p>
-                <p><strong>Durasi:</strong> {brief.durasiKeluhan || "-"}</p>
-                <p><strong>Mood:</strong> {brief.mood || "-"}</p>
+                <p>
+                  <strong>Durasi:</strong> {brief.durasiKeluhan || "-"}
+                </p>
+                <p>
+                  <strong>Mood:</strong> {brief.mood || "-"}
+                </p>
 
                 <p className="mt-2 text-xs text-gray-400">
                   Created: {new Date(item.createdAt).toLocaleString()}
@@ -57,9 +92,7 @@ export default async function FormBriefPage({ params }: FormBriefPageProps) {
                 {item.result && (
                   <div className="mt-3 p-3 bg-blue-50 rounded-lg text-sm text-blue-900">
                     <strong>AI Result:</strong>
-                    <p className="mt-1 whitespace-pre-line">
-                      {item.result}
-                    </p>
+                    <p className="mt-1 whitespace-pre-line">{item.result}</p>
                   </div>
                 )}
               </div>

@@ -55,7 +55,8 @@ export default function BookingListPage() {
   const [error, setError] = useState<string | null>(null);
 
   const sessionRole = String(session?.user?.role || "").toLowerCase();
-  const isPsychiatrist = sessionRole === "doctor" || sessionRole === "psychiatrist";
+  const isPsychiatrist =
+    sessionRole === "doctor" || sessionRole === "psychiatrist";
 
   useEffect(() => {
     let isMounted = true;
@@ -154,24 +155,30 @@ export default function BookingListPage() {
                   </thead>
                   <tbody className="divide-y divide-slate-100">
                     {bookings.map((booking) => {
-
                       const rowContent = (
                         <tr
                           key={booking._id}
-                          className={`hover:bg-slate-50 ${
-                            isPsychiatrist ? "cursor-pointer" : ""
-                          }`}
+                          className={`hover:bg-slate-50 ${isPsychiatrist && booking.userId ? "cursor-pointer" : ""}`}
                           onClick={() => {
-                            if (isPsychiatrist) {
-                              window.location.href = `/formbrief?userId=${booking.userId}`;
+                            if (!isPsychiatrist) return;
+                            if (!booking.userId) {
+                              // avoid navigating with undefined userId
+                              console.warn(
+                                "Skipping navigation: missing userId for booking",
+                                booking._id,
+                              );
+                              return;
                             }
+                            window.location.href = `/formbrief?userId=${encodeURIComponent(booking.userId)}`;
                           }}
                         >
                           <td className="px-4 py-3 text-slate-700">
                             {formatDateTime(booking.date)}
                           </td>
                           <td className="px-4 py-3 font-medium text-slate-900">
-                            {role === "DOCTOR" ? booking.userName : booking.staffName}
+                            {role === "DOCTOR"
+                              ? booking.userName
+                              : booking.staffName}
                           </td>
                           <td className="px-4 py-3 text-slate-700">
                             {booking.sessionDuration} menit
@@ -199,15 +206,17 @@ export default function BookingListPage() {
                           </td>
                           <td className="px-4 py-3">
                             <span
-                              className={`inline-flex rounded-full px-2.5 py-1 text-xs font-semibold ${
-                                booking.isDone ? "bg-blue-100 text-blue-700" : "bg-slate-200 text-slate-700"
-                              }`}
+                              className={`inline-flex rounded-full px-2.5 py-1 text-xs font-semibold ${booking.isDone ? "bg-blue-100 text-blue-700" : "bg-slate-200 text-slate-700"}`}
                             >
                               {booking.isDone ? "Done" : "Upcoming"}
                             </span>
-                            {booking.isPaid && !booking.isDone && isPsychiatrist && (
-                              <StartSessionButton bookingId={booking._id.toString()} />
-                            )}
+                            {booking.isPaid &&
+                              !booking.isDone &&
+                              isPsychiatrist && (
+                                <StartSessionButton
+                                  bookingId={booking._id.toString()}
+                                />
+                              )}
                           </td>
                         </tr>
                       );
