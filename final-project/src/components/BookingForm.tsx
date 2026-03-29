@@ -78,7 +78,7 @@ export default function BookingForm({ staffId }: BookingFormProps) {
       setError(err.message)
     } finally {
       setIsLoading(false)
-      router.push('/')
+      router.push('/bookinglist')
     }
   }
 
@@ -133,7 +133,7 @@ export default function BookingForm({ staffId }: BookingFormProps) {
         </div>
 
         <div className="flex flex-col">
-          <label htmlFor="amount" className="mb-1 text-sm font-medium text-gray-700">Amount ($)</label>
+          <label htmlFor="amount" className="mb-1 text-sm font-medium text-gray-700">Amount (Rp.)</label>
           <input
             id="amount"
             type="number"

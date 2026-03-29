@@ -175,10 +175,10 @@ export default function AboutPage() {
                 </div>
                 <div className="p-6">
                   <h3 className="font-bold text-xl text-blue-900 mb-1">
-                    Dr. Sari Kusuma, M.Psi
+                    Vincentius E.
                   </h3>
                   <p className="text-orange-500 font-bold text-sm mb-3">
-                    CEO & Psikolog Klinis
+                    Team Leader
                   </p>
                   <p className="text-gray-500 text-sm leading-relaxed">
                     Psikolog klinis dengan 15 tahun pengalaman, berfokus pada
@@ -198,10 +198,10 @@ export default function AboutPage() {
                 </div>
                 <div className="p-6">
                   <h3 className="font-bold text-xl text-blue-900 mb-1">
-                    Budi Santoso, M.Psi
+                    Brandon L.
                   </h3>
                   <p className="text-orange-500 font-bold text-sm mb-3">
-                    Kepala Layanan Konseling
+                    Authentication, Fullstack Support
                   </p>
                   <p className="text-gray-500 text-sm leading-relaxed">
                     Spesialis konseling remaja dan keluarga, berpengalaman di
@@ -221,10 +221,10 @@ export default function AboutPage() {
                 </div>
                 <div className="p-6">
                   <h3 className="font-bold text-xl text-blue-900 mb-1">
-                    Dewi Rahayu, M.Psi
+                    Bambang H. A.
                   </h3>
                   <p className="text-orange-500 font-bold text-sm mb-3">
-                    Psikolog Anak & Keluarga
+                    Frontend Lead
                   </p>
                   <p className="text-gray-500 text-sm leading-relaxed">
                     Ahli tumbuh kembang anak dan konseling keluarga, penulis
@@ -245,10 +245,10 @@ export default function AboutPage() {
                 </div>
                 <div className="p-6">
                   <h3 className="font-bold text-xl text-blue-900 mb-1">
-                    Dr. Sari Kusuma, M.Psi
+                    Akmal H. R.
                   </h3>
                   <p className="text-orange-500 font-bold text-sm mb-3">
-                    CEO & Psikolog Klinis
+                    Backend Database & Models
                   </p>
                   <p className="text-gray-500 text-sm leading-relaxed">
                     Psikolog klinis dengan 15 tahun pengalaman, berfokus pada
@@ -268,10 +268,10 @@ export default function AboutPage() {
                 </div>
                 <div className="p-6">
                   <h3 className="font-bold text-xl text-blue-900 mb-1">
-                    Budi Santoso, M.Psi
+                    Viyansyah
                   </h3>
                   <p className="text-orange-500 font-bold text-sm mb-3">
-                    Kepala Layanan Konseling
+                    AI Lead
                   </p>
                   <p className="text-gray-500 text-sm leading-relaxed">
                     Spesialis konseling remaja dan keluarga, berpengalaman di
@@ -291,10 +291,10 @@ export default function AboutPage() {
                 </div>
                 <div className="p-6">
                   <h3 className="font-bold text-xl text-blue-900 mb-1">
-                    Dewi Rahayu, M.Psi
+                    Rizki
                   </h3>
                   <p className="text-orange-500 font-bold text-sm mb-3">
-                    Psikolog Anak & Keluarga
+                    Backend Komunikasi & Payment
                   </p>
                   <p className="text-gray-500 text-sm leading-relaxed">
                     Ahli tumbuh kembang anak dan konseling keluarga, penulis

@@ -4,6 +4,8 @@ import Navbar from "@/components/navbar";
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { StartSessionButton } from "./StartSessionButton";
+import { useSession } from "next-auth/react";
+import { useRouter } from "next/navigation";
 
 type Booking = {
   _id: string;
@@ -47,10 +49,17 @@ const formatAmount = (amount: number) => {
 };
 
 export default function BookingListPage() {
+  const { data: session } = useSession();
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [role, setRole] = useState<"USER" | "DOCTOR" | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  const router = useRouter();
+
+  const sessionRole = String(session?.user?.role || "").toLowerCase();
+  const isPsychiatrist =
+    sessionRole === "doctor" || sessionRole === "psychiatrist";
 
   useEffect(() => {
     let isMounted = true;
@@ -149,31 +158,58 @@ export default function BookingListPage() {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-100">
-                    {bookings.map((booking) => (
-                      <tr key={booking._id} className="hover:bg-slate-50">
-                        <td className="px-4 py-3 text-slate-700">
-                          {formatDateTime(booking.date)}
-                        </td>
-                        <td className="px-4 py-3 font-medium text-slate-900">
-                          {role === "DOCTOR"
-                            ? booking.userName
-                            : booking.staffName}
-                        </td>
-                        <td className="px-4 py-3 text-slate-700">
-                          {booking.sessionDuration} menit
-                        </td>
-                        <td className="px-4 py-3 text-slate-700">
-                          {formatAmount(booking.amount)}
-                        </td>
-                        <td className="px-4 py-3">
-                          {booking.isPaid ? (
-                            <span className="inline-flex rounded-full bg-green-100 px-2.5 py-1 text-xs font-semibold text-green-700">
-                              Paid
-                            </span>
-                          ) : (
-                            <Link
-                              href={`/payment?amount=${booking.amount}&itemId=CONSULT-${booking._id}&itemName=Sesi Konseling&orderId=ORDER-${booking._id}&bookingId=${booking._id}`}
-                              className="inline-flex rounded-full bg-amber-100 px-2.5 py-1 text-xs font-semibold text-amber-700 transition-colors hover:bg-amber-200"
+                    {bookings.map((booking) => {
+                      const rowContent = (
+                        <tr
+                          key={booking._id}
+                          className={`hover:bg-slate-50 ${isPsychiatrist && booking.userId ? "cursor-pointer" : ""}`}
+                          onClick={() => {
+                            if (!isPsychiatrist) return;
+                            if (!booking.userId) {
+                              // avoid navigating with undefined userId
+                              alert(
+                                `Skipping navigation: missing userId for booking ${booking._id}`
+                              );
+                              return;
+                            }
+                            router.push(`/formbrief/${encodeURIComponent(booking.userId)}`)
+                          }}
+                        >
+                          <td className="px-4 py-3 text-slate-700">
+                            {formatDateTime(booking.date)}
+                          </td>
+                          <td className="px-4 py-3 font-medium text-slate-900">
+                            {role === "DOCTOR"
+                              ? booking.userName
+                              : booking.staffName}
+                          </td>
+                          <td className="px-4 py-3 text-slate-700">
+                            {booking.sessionDuration} menit
+                          </td>
+                          <td className="px-4 py-3 text-slate-700">
+                            {formatAmount(booking.amount)}
+                          </td>
+                          <td className="px-4 py-3">
+                            {booking.isPaid ? (
+                              <span className="inline-flex rounded-full bg-green-100 px-2.5 py-1 text-xs font-semibold text-green-700">
+                                Paid
+                              </span>
+                            ) : isPsychiatrist ? (
+                              <span className="inline-flex rounded-full bg-slate-200 px-2.5 py-1 text-xs font-semibold text-slate-700">
+                                Unpaid
+                              </span>
+                            ) : (
+                              <Link
+                                href={`/payment?amount=${booking.amount}&itemId=CONSULT-${booking._id}&itemName=Sesi Konseling&orderId=ORDER-${booking._id}&bookingId=${booking._id}`}
+                                className="inline-flex rounded-full bg-amber-100 px-2.5 py-1 text-xs font-semibold text-amber-700 transition-colors hover:bg-amber-200"
+                              >
+                                Unpaid
+                              </Link>
+                            )}
+                          </td>
+                          <td className="px-4 py-3">
+                            <span
+                              className={`inline-flex rounded-full px-2.5 py-1 text-xs font-semibold ${booking.isDone ? "bg-blue-100 text-blue-700" : "bg-slate-200 text-slate-700"}`}
                             >
                               Unpaid
                             </Link>
@@ -199,6 +235,21 @@ export default function BookingListPage() {
                         </td>
                       </tr>
                     ))}
+                              {booking.isDone ? "Done" : "Upcoming"}
+                            </span>
+                            {booking.isPaid &&
+                              !booking.isDone &&
+                              isPsychiatrist && (
+                                <StartSessionButton
+                                  bookingId={booking._id.toString()}
+                                />
+                              )}
+                          </td>
+                        </tr>
+                      );
+
+                      return rowContent;
+                    })}
                   </tbody>
                 </table>
               </div>
