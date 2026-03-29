@@ -145,6 +145,7 @@ export default function BookingListPage() {
                       <th className="px-4 py-3 font-semibold">Jumlah</th>
                       <th className="px-4 py-3 font-semibold">Pembayaran</th>
                       <th className="px-4 py-3 font-semibold">Status Sesi</th>
+                      <th className="px-4 py-3 font-semibold">Start video</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-100">
@@ -188,6 +189,8 @@ export default function BookingListPage() {
                           >
                             {booking.isDone ? "Done" : "Upcoming"}
                           </span>
+                        </td>
+                        <td className="px-4 py-3">
                           {booking.isPaid && !booking.isDone && (
                             <StartSessionButton
                               bookingId={booking._id.toString()}

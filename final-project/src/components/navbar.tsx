@@ -56,12 +56,12 @@ export default function Navbar() {
             href="/bookinglist"
             className="text-gray-500 hover:text-blue-700 transition-colors"
           >
-          List booking
+            List booking
           </Link>
           {session ? (
             <button
               onClick={handleLogout}
-              className="text-gray-500 hover:text-red-600 transition-colors"
+              className="cursor-pointer text-gray-500 hover:text-red-600 transition-colors"
             >
               Logout
             </button>
@@ -119,19 +119,19 @@ export default function Navbar() {
             href="/qna"
             className="block py-3 text-sm font-medium text-gray-600 border-b border-gray-50"
           >
-          Konsultasi
+            Konsultasi
           </Link>
           <Link
             key="bookinglist"
             href="/bookinglist"
             className="block py-3 text-sm font-medium text-gray-600 border-b border-gray-50"
           >
-          List booking
+            List booking
           </Link>
           {session ? (
             <button
               onClick={handleLogout}
-              className="block w-full text-left py-3 text-sm font-medium text-red-600 border-b border-gray-50"
+              className="cursor-pointer block w-full text-left py-3 text-sm font-medium text-red-600 border-b border-gray-50"
             >
               Logout
             </button>

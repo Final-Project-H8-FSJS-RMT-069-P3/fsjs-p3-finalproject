@@ -312,7 +312,7 @@ export default function Home() {
       <main className="bg-white">
         <section className="relative overflow-hidden bg-[#f8f9ff] py-20 lg:py-32">
           <div className="max-w-7xl mx-auto px-6 grid lg:grid-cols-2 gap-12 items-center">
-            <div className="z-10">
+            <div className="z-10 select-none">
               <span className="inline-block py-1 px-4 rounded-full bg-blue-100 text-blue-700 text-xs font-bold uppercase tracking-wider mb-6">
                 #1 Psikolog Terpercaya di Indonesia
               </span>

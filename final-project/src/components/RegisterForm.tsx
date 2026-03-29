@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { signIn } from "next-auth/react";
 import { FormEvent, useState } from "react";
 import Swal from "sweetalert2";
+import Link from "next/link";
 
 export default function RegisterForm() {
   const [name, setName] = useState("");
@@ -160,6 +161,15 @@ export default function RegisterForm() {
             Sign up
           </button>
         </form>
+        <p className="text-center text-gray-600 text-sm mt-6">
+          Already have account?{" "}
+          <Link
+            href="/login"
+            className="text-green-600 font-semibold hover:underline"
+          >
+            Login
+          </Link>
+        </p>
       </div>
     </div>
   );
