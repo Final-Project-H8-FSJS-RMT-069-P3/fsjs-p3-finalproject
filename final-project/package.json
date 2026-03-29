@@ -28,6 +28,7 @@
     "pusher-js": "^8.4.2",
     "react": "19.2.3",
     "react-dom": "19.2.3",
+    "react-markdown": "^10.1.0",
     "sweetalert2": "^11.26.24",
     "zod": "^4.3.6"
   },
