@@ -1,344 +1,446 @@
 "use client";
 
-import { useEffect, useState, useRef } from "react";
-import Pusher from "pusher-js";
 import {
-  Send,
-  User,
-  MessageCircle,
-  Stethoscope,
-  Search,
-  MoreVertical,
-  Phone,
-  Video,
-  Info,
-  Smile,
-  Paperclip,
-  Camera,
-} from "lucide-react";
+  useState,
+  useEffect,
+  useRef,
+  useCallback,
+  useMemo,
+  Suspense,
+} from "react";
+import { useSearchParams, useRouter } from "next/navigation";
+import { useAgoraVideoCall } from "@/hooks/useAgoraVideoCall";
+import PusherClient from "pusher-js";
 
-interface IMessage {
-  senderName: string;
-  message: string;
+// ─── Types ────────────────────────────────────────────────────────────────────
+type Tab = "chat" | "notes";
+type Message = {
+  id: number;
+  from: "doctor" | "user";
+  text: string;
   timestamp: string;
+};
+
+const NOTES = [
+  "Keluhan tidur tidak teratur sejak 3 minggu",
+  "Stres pekerjaan meningkat bulan ini",
+  "Teknik pernapasan 4-7-8 direkomendasikan",
+];
+
+// ─── Timer Hook ──────────────────────────────────────────────────────────────
+function useSessionTimer(running: boolean) {
+  const [secs, setSecs] = useState(0);
+  useEffect(() => {
+    if (!running) return;
+    const id = setInterval(() => setSecs((s) => s + 1), 1000);
+    return () => clearInterval(id);
+  }, [running]);
+
+  return useMemo(() => {
+    const mm = String(Math.floor(secs / 60)).padStart(2, "0");
+    const ss = String(secs % 60).padStart(2, "0");
+    return `${mm}:${ss}`;
+  }, [secs]);
 }
 
-export default function ChatPage() {
-  const [messages, setMessages] = useState<IMessage[]>([]);
-  const [input, setInput] = useState("");
-  const [isMounted, setIsMounted] = useState(false);
-  const [myName, setMyName] = useState("");
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
-
-  const scrollRef = useRef<HTMLDivElement>(null);
-  const chatId = "room-konsultasi-privat-001";
-
+// ─── UI Components (Style Asli) ────────────────────────────────────────────────
+function VideoTrack({
+  track,
+  className = "",
+}: {
+  track: any;
+  className?: string;
+}) {
+  const ref = useRef<HTMLDivElement>(null);
   useEffect(() => {
-    setIsMounted(true);
-  }, []);
+    if (!track || !ref.current) return;
+    track.play(ref.current);
+    return () => track.stop();
+  }, [track]);
+  return <div ref={ref} className={className} />;
+}
 
-  useEffect(() => {
-    if (scrollRef.current) {
-      scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
-    }
-  }, [messages]);
+function WaveBars({ active }: { active: boolean }) {
+  return (
+    <div className="flex items-center gap-[3px]">
+      {[7, 13, 9, 15, 7].map((h, i) => (
+        <span
+          key={i}
+          className="w-[3px] rounded-sm bg-emerald-500 transition-all duration-500"
+          style={{
+            height: h,
+            opacity: active ? 1 : 0.2,
+            transform: active ? "scaleY(1)" : "scaleY(0.35)",
+            animation: active
+              ? `waveAnim 0.8s ease-in-out ${i * 0.1}s infinite`
+              : "none",
+          }}
+        />
+      ))}
+    </div>
+  );
+}
 
-  useEffect(() => {
-    if (!isMounted || !isLoggedIn) return;
-
-    const pusher = new Pusher(process.env.NEXT_PUBLIC_PUSHER_KEY!, {
-      cluster: process.env.NEXT_PUBLIC_PUSHER_CLUSTER!,
-    });
-
-    const channel = pusher.subscribe(chatId);
-    channel.bind("incoming-message", (data: IMessage) => {
-      setMessages((prev) => [...prev, data]);
-    });
-
-    return () => {
-      pusher.unsubscribe(chatId);
-      pusher.disconnect();
-    };
-  }, [isMounted, isLoggedIn]);
-
-  const sendMessage = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!input.trim()) return;
-
-    const tempInput = input;
-    setInput("");
-
-    try {
-      await fetch("/api/chat/send", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          message: tempInput,
-          senderName: myName,
-          chatId: chatId,
-        }),
-      });
-    } catch (error) {
-      console.error("Error:", error);
-    }
-  };
-
-  if (!isLoggedIn) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-blue-50 p-4">
-        <div className="bg-white p-8 rounded-3xl shadow-xl w-full max-w-md text-center border border-blue-100">
-          <h2 className="text-2xl font-bold text-blue-900 mb-6">
-            Konsultasi Privat
-          </h2>
-          <div className="grid grid-cols-2 gap-4">
-            <button
-              onClick={() => {
-                setMyName("Dokter");
-                setIsLoggedIn(true);
-              }}
-              className="flex flex-col items-center p-4 border-2 border-blue-50 rounded-2xl hover:bg-blue-600 hover:text-white transition-all group"
-            >
-              <Stethoscope
-                size={40}
-                className="mb-2 text-blue-600 group-hover:text-white"
-              />
-              <span className="font-bold">Saya Dokter</span>
-            </button>
-            <button
-              onClick={() => {
-                setMyName("Pasien");
-                setIsLoggedIn(true);
-              }}
-              className="flex flex-col items-center p-4 border-2 border-blue-50 rounded-2xl hover:bg-blue-600 hover:text-white transition-all group"
-            >
-              <User
-                size={40}
-                className="mb-2 text-blue-600 group-hover:text-white"
-              />
-              <span className="font-bold">Saya Pasien</span>
-            </button>
-          </div>
-        </div>
-      </div>
-    );
-  }
+function CtrlBtn({ icon, label, muted, active, danger, big, onClick }: any) {
+  const size = big ? "w-14 h-14 text-2xl" : "w-12 h-12 text-lg";
+  const color = danger
+    ? "bg-red-500 hover:bg-red-600 text-white shadow-lg shadow-red-100"
+    : muted
+    ? "bg-red-50 border border-red-100 text-red-500"
+    : active
+    ? "bg-blue-600 text-white shadow-lg shadow-blue-100"
+    : "bg-blue-50 border border-blue-100 text-blue-900 hover:bg-blue-100";
 
   return (
-    <div className="min-h-screen bg-slate-50 md:py-10 px-0 md:px-4 font-sans">
-      <div className="container mx-auto max-w-6xl h-screen md:h-[700px] flex flex-col md:flex-row gap-0 md:gap-4 overflow-hidden">
-        {/* LEFT SIDEBAR - List Chat (Hidden on small mobile if needed, but here kept for layout) */}
-        <div className="hidden md:flex w-full md:w-1/3 bg-white md:rounded-2xl shadow-sm border border-slate-200 flex-col">
-          <div className="p-5 border-b flex justify-between items-center">
-            <h2 className="text-xl font-bold text-blue-900">Messages</h2>
-            <div className="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-slate-500 cursor-pointer">
-              <MoreVertical size={16} />
+    <div className="flex flex-col items-center gap-1.5">
+      <button
+        onClick={onClick}
+        className={`flex items-center justify-center rounded-full transition-all active:scale-90 ${size} ${color}`}
+      >
+        {icon}
+      </button>
+      <span
+        className={`text-[10px] font-bold uppercase tracking-wider ${
+          danger || muted ? "text-red-600" : "text-gray-500"
+        }`}
+      >
+        {label}
+      </span>
+    </div>
+  );
+}
+
+// ─── Main Content ─────────────────────────────────────────────────────────────
+function VideoCallContent() {
+  const searchParams = useSearchParams();
+  const router = useRouter();
+
+  // AMBIL CHANNEL DARI URL (localhost:3000/videocall?channel=ROOM_ID)
+  const channelName = searchParams.get("channel") ?? "";
+
+  const {
+    connectionState,
+    localVideoTrack,
+    remoteVideoTrack,
+    isMicOn,
+    isCamOn,
+    isRemoteSpeaking,
+    join,
+    leave,
+    toggleMic,
+    toggleCam,
+  } = useAgoraVideoCall({
+    channelName,
+    onEnded: () => router.push("/bookinglist"),
+  });
+
+  const isConnected = connectionState === "connected";
+  const timer = useSessionTimer(isConnected);
+  const [messages, setMessages] = useState<Message[]>([]);
+  const [activeTab, setActiveTab] = useState<Tab>("chat");
+  const [mobChatOpen, setMobChatOpen] = useState(false);
+
+  // Pusher Listener
+  useEffect(() => {
+    if (!channelName) return;
+    const pusher = new PusherClient(process.env.NEXT_PUBLIC_PUSHER_KEY!, {
+      cluster: process.env.NEXT_PUBLIC_PUSHER_CLUSTER!,
+    });
+    const channel = pusher.subscribe(channelName);
+
+    channel.bind("incoming-message", (data: any) => {
+      if (data.senderName !== "User") {
+        setMessages((prev) => [
+          ...prev,
+          {
+            id: Date.now(),
+            from: "doctor",
+            text: data.message,
+            timestamp: new Date(data.timestamp).toLocaleTimeString([], {
+              hour: "2-digit",
+              minute: "2-digit",
+            }),
+          },
+        ]);
+      }
+    });
+    return () => {
+      pusher.unsubscribe(channelName);
+      pusher.disconnect();
+    };
+  }, [channelName]);
+
+  const sendMessage = useCallback(
+    async (text: string) => {
+      if (!text.trim()) return;
+      const time = new Date().toLocaleTimeString([], {
+        hour: "2-digit",
+        minute: "2-digit",
+      });
+      setMessages((p) => [
+        ...p,
+        { id: Date.now(), from: "user", text, timestamp: time },
+      ]);
+      try {
+        await fetch("/api/chat/send", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            channelName,
+            message: text,
+            senderName: "User",
+          }),
+        });
+      } catch (e) {
+        console.error(e);
+      }
+    },
+    [channelName]
+  );
+
+  if (!channelName)
+    return (
+      <div className="h-screen flex items-center justify-center font-bold">
+        Error: Channel ID diperlukan di URL
+      </div>
+    );
+
+  return (
+    <>
+      <style>{`
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+        @keyframes waveAnim { 0%,100% { transform: scaleY(0.4); opacity: 0.5; } 50% { transform: scaleY(1); opacity: 1; } }
+        * { font-family: 'Plus Jakarta Sans', sans-serif; }
+      `}</style>
+
+      <div className="flex flex-col h-dvh bg-white text-gray-900 overflow-hidden">
+        {/* Header */}
+        <header className="flex items-center justify-between px-6 py-4 bg-white border-b shrink-0 z-40 shadow-sm">
+          <div className="flex items-center gap-3">
+            <span
+              className={`w-3 h-3 rounded-full ${
+                isConnected ? "bg-emerald-500 animate-pulse" : "bg-gray-300"
+              }`}
+            />
+            <div>
+              <p className="text-sm font-extrabold text-blue-900">
+                Sesi Konsultasi
+              </p>
+              <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">
+                {isConnected ? "Aktif" : "Menghubungkan..."}
+              </p>
             </div>
           </div>
-
-          <div className="p-4">
-            <div className="relative">
-              <input
-                type="text"
-                placeholder="Cari percakapan..."
-                className="w-full bg-slate-100 rounded-xl py-2.5 px-4 pl-10 focus:outline-none text-sm border border-transparent focus:border-blue-200 transition-all"
-              />
-              <Search
-                className="absolute left-3 top-2.5 text-slate-400"
-                size={18}
-              />
+          {isConnected && (
+            <div className="bg-gray-50 border px-4 py-1 rounded-full text-blue-900 font-mono font-bold">
+              {timer}
             </div>
-          </div>
+          )}
+        </header>
 
-          <div className="flex border-b text-sm">
-            <button className="flex-1 py-3 font-semibold text-blue-600 border-b-2 border-blue-600">
-              Aktif
-            </button>
-            <button className="flex-1 py-3 font-medium text-slate-400 hover:text-slate-600 transition-colors">
-              Riwayat
-            </button>
-          </div>
-
-          <div className="flex-1 overflow-y-auto">
-            {/* Active Session Item */}
-            <div className="p-4 border-b flex items-center bg-blue-50/50 cursor-pointer border-l-4 border-l-blue-600">
-              <div className="relative shrink-0">
-                <div className="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center text-blue-600">
-                  {myName === "Dokter" ? (
-                    <User size={24} />
+        {/* Main Area */}
+        <div className="flex-1 min-h-0 grid grid-cols-1 md:grid-cols-[1fr_350px] md:gap-4 md:p-4 bg-gray-50/50">
+          <div className="relative flex items-center justify-center overflow-hidden md:rounded-[2rem] bg-white border shadow-xl">
+            {isConnected ? (
+              <>
+                {remoteVideoTrack ? (
+                  <VideoTrack
+                    track={remoteVideoTrack}
+                    className="absolute inset-0 w-full h-full object-cover"
+                  />
+                ) : (
+                  <div className="flex flex-col items-center gap-4">
+                    <div className="w-24 h-24 rounded-full bg-blue-100 flex items-center justify-center text-3xl">
+                      👨‍⚕️
+                    </div>
+                    <WaveBars active={isRemoteSpeaking} />
+                  </div>
+                )}
+                <div className="absolute top-4 right-4 w-28 h-36 rounded-2xl overflow-hidden border-2 border-white shadow-lg bg-gray-100">
+                  {isCamOn && localVideoTrack ? (
+                    <VideoTrack
+                      track={localVideoTrack}
+                      className="w-full h-full object-cover"
+                    />
                   ) : (
-                    <Stethoscope size={24} />
+                    <div className="h-full flex items-center justify-center text-[10px] font-bold text-gray-400">
+                      Cam Off
+                    </div>
                   )}
                 </div>
-                <span className="absolute bottom-0 right-0 w-3.5 h-3.5 bg-green-500 rounded-full border-2 border-white"></span>
-              </div>
-              <div className="ml-3 flex-1 overflow-hidden">
-                <div className="flex justify-between items-baseline">
-                  <h3 className="font-bold text-slate-900 truncate">
-                    {myName === "Dokter" ? "Pasien Budi" : "dr. Sarah Wijaya"}
-                  </h3>
-                  <span className="text-[10px] text-slate-400 font-medium">
-                    Baru saja
-                  </span>
-                </div>
-                <p className="text-xs text-blue-600 font-medium truncate italic">
-                  Sesi konsultasi sedang berjalan...
-                </p>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* RIGHT SIDE - Chat Window */}
-        <div className="flex-1 bg-white md:rounded-2xl shadow-sm border border-slate-200 flex flex-col min-h-0">
-          {/* Header */}
-          <div className="p-4 border-b flex items-center justify-between bg-white shrink-0">
-            <div className="flex items-center">
-              <div className="w-10 h-10 rounded-full bg-blue-900 flex items-center justify-center text-white shrink-0">
-                {myName === "Dokter" ? (
-                  <User size={20} />
-                ) : (
-                  <Stethoscope size={20} />
-                )}
-              </div>
-              <div className="ml-3">
-                <h3 className="font-bold text-slate-900 text-sm">
-                  {myName === "Dokter" ? "Pasien Budi" : "dr. Sarah Wijaya"}
-                </h3>
-                <div className="flex items-center gap-1.5">
-                  <span className="w-2 h-2 bg-green-500 rounded-full"></span>
-                  <p className="text-[11px] text-slate-400 font-medium">
-                    Online
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            <div className="flex items-center gap-1 md:gap-3">
-              <button className="p-2 text-slate-400 hover:bg-slate-50 rounded-full transition-colors">
-                <Phone size={18} />
-              </button>
-              <button className="p-2 text-slate-400 hover:bg-slate-50 rounded-full transition-colors">
-                <Video size={18} />
-              </button>
-              <button
-                onClick={() => window.location.reload()}
-                className="p-2 text-red-400 hover:bg-red-50 rounded-full transition-colors"
-              >
-                <Info size={18} />
-              </button>
-            </div>
-          </div>
-
-          {/* Messages Area */}
-          <div
-            ref={scrollRef}
-            className="flex-1 p-4 overflow-y-auto bg-slate-50/50 space-y-4"
-          >
-            {messages.length === 0 ? (
-              <div className="h-full flex flex-col items-center justify-center text-slate-300">
-                <MessageCircle size={48} className="mb-2 opacity-20" />
-                <p className="text-sm font-medium">
-                  Mulai percakapan dengan aman
-                </p>
-              </div>
+              </>
             ) : (
-              messages.map((msg, i) => {
-                const isMe = msg.senderName === myName;
-                return (
-                  <div
-                    key={i}
-                    className={`flex ${isMe ? "justify-end" : "justify-start"}`}
-                  >
-                    {!isMe && (
-                      <div className="w-7 h-7 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 mr-2 mt-1 shrink-0 text-[10px] font-bold">
-                        {msg.senderName.charAt(0)}
-                      </div>
-                    )}
-                    <div className={`max-w-[80%] md:max-w-[70%]`}>
-                      <div
-                        className={`px-4 py-2.5 rounded-2xl shadow-sm ${
-                          isMe
-                            ? "bg-blue-600 text-white rounded-tr-none"
-                            : "bg-white border border-slate-200 text-slate-800 rounded-tl-none"
-                        }`}
-                      >
-                        <p className="text-sm leading-relaxed whitespace-pre-wrap">
-                          {msg.message}
-                        </p>
-                      </div>
-                      <div
-                        className={`flex items-center mt-1 gap-1 ${
-                          isMe ? "justify-end" : "justify-start"
-                        }`}
-                      >
-                        <span className="text-[10px] text-slate-400">
-                          {new Date(msg.timestamp).toLocaleTimeString([], {
-                            hour: "2-digit",
-                            minute: "2-digit",
-                          })}
-                        </span>
-                        {isMe && (
-                          <div className="text-blue-500 text-[10px]">✓✓</div>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                );
-              })
+              <button
+                onClick={join}
+                className="px-8 py-3 bg-blue-600 text-white font-bold rounded-full shadow-lg hover:scale-105 transition-all"
+              >
+                Bergabung Sekarang
+              </button>
             )}
           </div>
 
-          {/* Input Area */}
-          <div className="p-4 bg-white border-t shrink-0">
-            <form onSubmit={sendMessage} className="flex items-center gap-2">
-              <div className="hidden md:flex items-center gap-1 text-slate-400 mr-1">
+          {/* Desktop Sidebar */}
+          <div className="hidden md:flex flex-col bg-white rounded-[2rem] border overflow-hidden shadow-xl">
+            <div className="flex p-2 bg-gray-50 border-b gap-1">
+              {["chat", "notes"].map((t) => (
                 <button
-                  type="button"
-                  className="p-1.5 hover:text-blue-600 transition-colors"
+                  key={t}
+                  onClick={() => setActiveTab(t as Tab)}
+                  className={`flex-1 py-2 text-[11px] font-bold rounded-full uppercase ${
+                    activeTab === t
+                      ? "bg-white text-blue-600 shadow-sm"
+                      : "text-gray-400"
+                  }`}
                 >
-                  <Smile size={20} />
+                  {t === "chat" ? "💬 Chat" : "📋 Catatan"}
                 </button>
-                <button
-                  type="button"
-                  className="p-1.5 hover:text-blue-600 transition-colors"
-                >
-                  <Paperclip size={20} />
-                </button>
-                <button
-                  type="button"
-                  className="p-1.5 hover:text-blue-600 transition-colors"
-                >
-                  <Camera size={20} />
-                </button>
-              </div>
-
-              <div className="flex-1 relative">
-                <input
-                  value={input}
-                  onChange={(e) => setInput(e.target.value)}
-                  placeholder="Ketik pesan..."
-                  className="w-full bg-slate-100 rounded-full py-3 px-5 focus:outline-none text-sm border border-transparent focus:border-blue-100 transition-all text-slate-700"
-                />
-              </div>
-
-              <button
-                type="submit"
-                disabled={!input.trim()}
-                className={`w-11 h-11 rounded-full flex items-center justify-center transition-all shrink-0 ${
-                  input.trim()
-                    ? "bg-blue-600 text-white shadow-md shadow-blue-200 hover:bg-blue-700 active:scale-90"
-                    : "bg-slate-100 text-slate-300"
-                }`}
-              >
-                <Send size={18} className={input.trim() ? "ml-1" : ""} />
-              </button>
-            </form>
-            <p className="text-[10px] text-center text-slate-400 mt-2">
-              Percakapan ini dilindungi enkripsi end-to-end
-            </p>
+              ))}
+            </div>
+            <div className="flex-1 overflow-hidden">
+              {activeTab === "chat" ? (
+                <ChatPanel messages={messages} onSend={sendMessage} />
+              ) : (
+                <div className="p-6 space-y-4">
+                  {NOTES.map((n, i) => (
+                    <div key={i} className="text-sm text-gray-600 flex gap-2">
+                      <span className="w-1.5 h-1.5 rounded-full bg-blue-400 mt-1.5 shrink-0" />
+                      {n}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
           </div>
+        </div>
+
+        {/* Controls */}
+        <div className="flex items-center justify-center gap-6 py-5 bg-white border-t shrink-0 z-30">
+          <CtrlBtn
+            icon={isMicOn ? "🎙️" : "🔇"}
+            label="Mic"
+            muted={!isMicOn}
+            onClick={toggleMic}
+          />
+          <CtrlBtn
+            icon={isCamOn ? "📹" : "🚫"}
+            label="Kamera"
+            active={isCamOn}
+            onClick={toggleCam}
+          />
+          <CtrlBtn
+            icon="📵"
+            label="Akhiri"
+            danger
+            big
+            onClick={() => confirm("Akhiri sesi?") && leave()}
+          />
+          <div className="md:hidden">
+            <CtrlBtn
+              icon="💬"
+              label="Chat"
+              onClick={() => setMobChatOpen(true)}
+            />
+          </div>
+        </div>
+
+        {/* Mobile Overlay */}
+        {mobChatOpen && (
+          <div className="fixed inset-0 z-[100] bg-white flex flex-col md:hidden">
+            <header className="p-4 border-b flex justify-between items-center">
+              <button
+                onClick={() => setMobChatOpen(false)}
+                className="text-blue-900 font-bold"
+              >
+                ✕ Tutup
+              </button>
+              <span className="text-xs font-black uppercase">Chat Sesi</span>
+              <div className="w-10" />
+            </header>
+            <ChatPanel messages={messages} onSend={sendMessage} />
+          </div>
+        )}
+      </div>
+    </>
+  );
+}
+
+// ─── Chat Panel Component (Style Asli) ─────────────────────────────────────────
+function ChatPanel({
+  messages,
+  onSend,
+}: {
+  messages: Message[];
+  onSend: (t: string) => void;
+}) {
+  const [input, setInput] = useState("");
+  const endRef = useRef<HTMLDivElement>(null);
+  useEffect(
+    () => endRef.current?.scrollIntoView({ behavior: "smooth" }),
+    [messages]
+  );
+
+  return (
+    <div className="flex flex-col h-full">
+      <div className="flex-1 overflow-y-auto p-5 space-y-5 bg-gray-50/30">
+        {messages.map((m) => (
+          <div
+            key={m.id}
+            className={`flex flex-col ${
+              m.from === "user" ? "items-end" : "items-start"
+            }`}
+          >
+            <div
+              className={`px-4 py-2.5 rounded-2xl text-[13px] max-w-[85%] shadow-sm ${
+                m.from === "user"
+                  ? "bg-blue-600 text-white rounded-tr-none"
+                  : "bg-white border text-gray-800 rounded-tl-none"
+              }`}
+            >
+              {m.text}
+            </div>
+            <span className="text-[9px] text-gray-400 mt-1 font-bold">
+              {m.timestamp}
+            </span>
+          </div>
+        ))}
+        <div ref={endRef} />
+      </div>
+      <div className="p-4 bg-white border-t">
+        <div className="flex gap-2 bg-gray-50 border rounded-full px-4 py-1.5 focus-within:bg-white focus-within:shadow-md transition-all">
+          <input
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            onKeyDown={(e) =>
+              e.key === "Enter" && (onSend(input), setInput(""))
+            }
+            className="flex-1 bg-transparent text-sm outline-none py-1.5"
+            placeholder="Tulis pesan..."
+          />
+          <button
+            onClick={() => {
+              onSend(input);
+              setInput("");
+            }}
+            className="text-blue-600 font-bold text-sm px-2"
+          >
+            Kirim
+          </button>
         </div>
       </div>
     </div>
+  );
+}
+
+export default function VideoCallPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="h-screen flex items-center justify-center">
+          Memuat...
+        </div>
+      }
+    >
+      <VideoCallContent />
+    </Suspense>
   );
 }

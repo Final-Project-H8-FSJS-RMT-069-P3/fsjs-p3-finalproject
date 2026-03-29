@@ -154,6 +154,7 @@ export default function BookingListPage() {
                       <th className="px-4 py-3 font-semibold">Jumlah</th>
                       <th className="px-4 py-3 font-semibold">Pembayaran</th>
                       <th className="px-4 py-3 font-semibold">Status Sesi</th>
+                      <th className="px-4 py-3 font-semibold">Start video</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-100">
@@ -210,6 +211,30 @@ export default function BookingListPage() {
                             <span
                               className={`inline-flex rounded-full px-2.5 py-1 text-xs font-semibold ${booking.isDone ? "bg-blue-100 text-blue-700" : "bg-slate-200 text-slate-700"}`}
                             >
+                              Unpaid
+                            </Link>
+                          )}
+                        </td>
+                        <td className="px-4 py-3">
+                          <span
+                            className={`inline-flex rounded-full px-2.5 py-1 text-xs font-semibold ${
+                              booking.isDone
+                                ? "bg-blue-100 text-blue-700"
+                                : "bg-slate-200 text-slate-700"
+                            }`}
+                          >
+                            {booking.isDone ? "Done" : "Upcoming"}
+                          </span>
+                        </td>
+                        <td className="px-4 py-3">
+                          {booking.isPaid && !booking.isDone && (
+                            <StartSessionButton
+                              bookingId={booking._id.toString()}
+                            />
+                          )}
+                        </td>
+                      </tr>
+                    ))}
                               {booking.isDone ? "Done" : "Upcoming"}
                             </span>
                             {booking.isPaid &&
