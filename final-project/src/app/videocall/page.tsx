@@ -151,13 +151,23 @@ function VideoCallContent() {
 
       const channel = pusher.subscribe(channelName);
       channel.bind("incoming-message", (data: any) => {
-        const isMine = currentUserId && data.senderId === currentUserId;
+        const isMineById = !!currentUserId && data.senderId === currentUserId;
+        const isMineByName =
+          !data.senderId &&
+          !!data.senderName &&
+          data.senderName === currentUserName;
+
+        // We already render local messages optimistically in sendMessage.
+        // Ignore echoed events from Pusher for the same sender to avoid duplicates.
+        if (isMineById || isMineByName) {
+          return;
+        }
 
         setMessages((prev) => [
           ...prev,
           {
             id: Date.now(),
-            from: isMine ? "user" : "doctor",
+            from: "doctor",
             text: data.message,
             senderId: data.senderId,
             senderName: data.senderName,
@@ -181,7 +191,7 @@ function VideoCallContent() {
         pusher.disconnect();
       }
     };
-  }, [channelName, currentUserId]);
+  }, [channelName, currentUserId, currentUserName]);
 
   const sendMessage = useCallback(async (text: string) => {
     if (!text.trim()) return;
