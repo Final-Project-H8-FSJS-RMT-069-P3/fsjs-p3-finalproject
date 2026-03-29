@@ -715,6 +715,29 @@ export default function PreConsultationForm() {
 
   const progress = ((step - 1) / (STEPS.length - 1)) * 100;
 
+  async function analyzeApi(form: FormState) {
+    try {
+      const response = await fetch("/api/ai-psikolog", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ type: "analyze", form }),
+      });
+      if (!response.ok) {
+        throw new Error("Gagal menganalisis data");
+      }
+    } catch (error) {
+      console.error("Error saat analisis:", error);
+    }
+  }
+  const handleSubmit = async () => {
+    try {
+      await analyzeApi(form);
+      setSubmitted(true);
+    } catch (error) {
+      console.error("Error saat submit:", error);
+    }
+  };
+
   if (submitted) {
     return (
       <div className="min-h-screen bg-[#f8f9ff] flex items-center justify-center px-4 py-20">
@@ -802,8 +825,8 @@ export default function PreConsultationForm() {
                     step > s.id
                       ? "bg-blue-900 border-blue-900 text-white"
                       : step === s.id
-                      ? "bg-white border-blue-900 text-blue-900 shadow-lg shadow-blue-100"
-                      : "bg-white border-gray-200 text-gray-400"
+                        ? "bg-white border-blue-900 text-blue-900 shadow-lg shadow-blue-100"
+                        : "bg-white border-gray-200 text-gray-400"
                   }`}
                 >
                   {step > s.id ? (
@@ -889,7 +912,7 @@ export default function PreConsultationForm() {
               </button>
             ) : (
               <button
-                onClick={() => canNext() && setSubmitted(true)}
+                onClick={handleSubmit}
                 disabled={!canNext()}
                 className={`flex items-center gap-2 px-8 py-3 rounded-xl font-bold text-sm
                   transition-all active:scale-95
