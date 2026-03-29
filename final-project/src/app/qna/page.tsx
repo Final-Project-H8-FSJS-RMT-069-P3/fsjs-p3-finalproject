@@ -89,6 +89,91 @@ type SelectInputProps = React.SelectHTMLAttributes<HTMLSelectElement> & {
 type TextareaInputProps = React.TextareaHTMLAttributes<HTMLTextAreaElement>;
 
 const STEPS: Step[] = [
+type Step = {
+  id: number;
+  label: string;
+  icon: string;
+};
+
+type MoodOption = {
+  value: string;
+  label: string;
+  emoji: string;
+};
+
+interface FormState {
+  nama: string;
+  usia: string;
+  jenisKelamin: string;
+  statusPernikahan: string;
+  pekerjaan: string;
+  domisili: string;
+  keluhanUtama: string[];
+  keluhanLainnya: string;
+  durasiKeluhan: string;
+  intensitas: number;
+  pernahKonsultasi: string;
+  riwayatTerapi: string;
+  riwayatMedis: string;
+  konsumsiObat: string;
+  namaObat: string;
+  riwayatKeluarga: string;
+  mood: string;
+  polaTidur: string;
+  jamTidur: number;
+  nafsuMakan: string;
+  aktivitasSosial: string;
+  deskripsi: string;
+  tujuan: string;
+  harapan: string;
+  preferensi: string;
+  tambahan: string;
+}
+
+type UpdateForm = <K extends keyof FormState>(
+  field: K,
+  value: FormState[K],
+) => void;
+
+type StepProps = {
+  data: FormState;
+  update: UpdateForm;
+};
+
+type Step2Props = StepProps & {
+  toggleKeluhan: (item: string) => void;
+};
+
+type LabelProps = {
+  children: React.ReactNode;
+  required?: boolean;
+};
+
+type FieldProps = {
+  label: string;
+  required?: boolean;
+  children: React.ReactNode;
+};
+
+type PillRadioProps = {
+  options: string[];
+  value: string;
+  onChange: (value: string) => void;
+};
+
+type SectionHeaderProps = {
+  badge: string;
+  title: string;
+  desc: string;
+};
+
+type TextInputProps = React.InputHTMLAttributes<HTMLInputElement>;
+type SelectInputProps = React.SelectHTMLAttributes<HTMLSelectElement> & {
+  children: React.ReactNode;
+};
+type TextareaInputProps = React.TextareaHTMLAttributes<HTMLTextAreaElement>;
+
+const STEPS: Step[] = [
   { id: 1, label: "Data Diri", icon: "👤" },
   { id: 2, label: "Keluhan", icon: "💬" },
   { id: 3, label: "Riwayat", icon: "📋" },
