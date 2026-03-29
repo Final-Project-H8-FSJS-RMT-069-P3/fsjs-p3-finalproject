@@ -55,6 +55,20 @@ export default function Navbar() {
           >
             Tentang kami
           </Link>
+          <Link
+            key="kontenpsikologi"
+            href="/qna"
+            className="text-gray-500 hover:text-blue-700 transition-colors"
+          >
+            Konsultasi
+          </Link>
+          <Link
+            key="bookinglist"
+            href="/bookinglist"
+            className="text-gray-500 hover:text-blue-700 transition-colors"
+          >
+            List booking
+          </Link>
           {session && (
             <Link
               key="bookinglist"
@@ -67,7 +81,7 @@ export default function Navbar() {
           {session ? (
             <button
               onClick={handleLogout}
-              className="text-gray-500 hover:text-red-600 transition-colors"
+              className="cursor-pointer text-gray-500 hover:text-red-600 transition-colors"
             >
               Logout
             </button>
@@ -120,6 +134,20 @@ export default function Navbar() {
           >
             Tentang kami
           </Link>
+          <Link
+            key="kontenpsikologi"
+            href="/qna"
+            className="block py-3 text-sm font-medium text-gray-600 border-b border-gray-50"
+          >
+            Konsultasi
+          </Link>
+          <Link
+            key="bookinglist"
+            href="/bookinglist"
+            className="block py-3 text-sm font-medium text-gray-600 border-b border-gray-50"
+          >
+            List booking
+          </Link>
           {session && (
             <Link
               key="bookinglist"
@@ -132,7 +160,7 @@ export default function Navbar() {
           {session ? (
             <button
               onClick={handleLogout}
-              className="block w-full text-left py-3 text-sm font-medium text-red-600 border-b border-gray-50"
+              className="cursor-pointer block w-full text-left py-3 text-sm font-medium text-red-600 border-b border-gray-50"
             >
               Logout
             </button>

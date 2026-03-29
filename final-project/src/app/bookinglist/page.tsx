@@ -29,10 +29,7 @@ type BookingApiResponse = {
 
 const formatDateTime = (value: string) => {
   const date = new Date(value);
-
-  if (Number.isNaN(date.getTime())) {
-    return "Invalid date";
-  }
+  if (Number.isNaN(date.getTime())) return "Invalid date";
 
   return date.toLocaleString("id-ID", {
     dateStyle: "medium",
@@ -84,25 +81,20 @@ export default function BookingListPage() {
           setError(message);
         }
       } finally {
-        if (isMounted) {
-          setLoading(false);
-        }
+        if (isMounted) setLoading(false);
       }
     };
 
     fetchBookings();
-
     return () => {
       isMounted = false;
     };
   }, []);
 
   const pageTitle = useMemo(() => {
-    if (role === "DOCTOR") {
-      return "Daftar Booking Pasien";
-    }
-
-    return "Daftar Booking Saya";
+    return role === "DOCTOR"
+      ? "Daftar Booking Pasien"
+      : "Daftar Booking Saya";
   }, [role]);
 
   return (
@@ -117,117 +109,92 @@ export default function BookingListPage() {
             <h1 className="mt-2 text-3xl font-extrabold text-slate-900">
               {pageTitle}
             </h1>
-            <p className="mt-2 text-sm text-slate-600">
-              Menampilkan seluruh booking kamu.
-            </p>
           </div>
 
           {loading && (
-            <div className="rounded-2xl bg-white p-8 text-sm text-slate-600 shadow-sm">
-              Memuat data booking...
+            <div className="bg-white p-8 rounded-2xl shadow-sm">
+              Loading...
             </div>
           )}
 
           {!loading && error && (
-            <div className="rounded-2xl border border-red-200 bg-red-50 p-6 text-sm text-red-700">
+            <div className="bg-red-50 border border-red-200 p-6 rounded-2xl text-red-700">
               {error}
             </div>
           )}
 
-          {!loading && !error && bookings.length === 0 && (
-            <div className="rounded-2xl bg-white p-8 text-sm text-slate-600 shadow-sm">
-              Belum ada booking ditemukan.
-            </div>
-          )}
-
           {!loading && !error && bookings.length > 0 && (
-            <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
-              <div className="overflow-x-auto">
-                <table className="min-w-full divide-y divide-slate-200 text-sm">
-                  <thead className="bg-slate-100 text-left text-slate-700">
-                    <tr>
-                      <th className="px-4 py-3 font-semibold">Tanggal Sesi</th>
-                      <th className="px-4 py-3 font-semibold">
-                        {role === "DOCTOR" ? "Nama Pasien" : "Nama Dokter"}
-                      </th>
-                      <th className="px-4 py-3 font-semibold">Durasi</th>
-                      <th className="px-4 py-3 font-semibold">Jumlah</th>
-                      <th className="px-4 py-3 font-semibold">Pembayaran</th>
-                      <th className="px-4 py-3 font-semibold">Status Sesi</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-slate-100">
-                    {bookings.map((booking) => {
-                      const rowContent = (
-                        <tr
-                          key={booking._id}
-                          className={`hover:bg-slate-50 ${isPsychiatrist && booking.userId ? "cursor-pointer" : ""}`}
-                          onClick={() => {
-                            if (!isPsychiatrist) return;
-                            if (!booking.userId) {
-                              // avoid navigating with undefined userId
-                              alert(
-                                `Skipping navigation: missing userId for booking ${booking._id}`
-                              );
-                              return;
-                            }
-                            router.push(`/formbrief/${encodeURIComponent(booking.userId)}`)
-                          }}
-                        >
-                          <td className="px-4 py-3 text-slate-700">
-                            {formatDateTime(booking.date)}
-                          </td>
-                          <td className="px-4 py-3 font-medium text-slate-900">
-                            {role === "DOCTOR"
-                              ? booking.userName
-                              : booking.staffName}
-                          </td>
-                          <td className="px-4 py-3 text-slate-700">
-                            {booking.sessionDuration} menit
-                          </td>
-                          <td className="px-4 py-3 text-slate-700">
-                            {formatAmount(booking.amount)}
-                          </td>
-                          <td className="px-4 py-3">
-                            {booking.isPaid ? (
-                              <span className="inline-flex rounded-full bg-green-100 px-2.5 py-1 text-xs font-semibold text-green-700">
-                                Paid
-                              </span>
-                            ) : isPsychiatrist ? (
-                              <span className="inline-flex rounded-full bg-slate-200 px-2.5 py-1 text-xs font-semibold text-slate-700">
-                                Unpaid
-                              </span>
-                            ) : (
-                              <Link
-                                href={`/payment?amount=${booking.amount}&itemId=CONSULT-${booking._id}&itemName=Sesi Konseling&orderId=ORDER-${booking._id}&bookingId=${booking._id}`}
-                                className="inline-flex rounded-full bg-amber-100 px-2.5 py-1 text-xs font-semibold text-amber-700 transition-colors hover:bg-amber-200"
-                              >
-                                Unpaid
-                              </Link>
-                            )}
-                          </td>
-                          <td className="px-4 py-3">
-                            <span
-                              className={`inline-flex rounded-full px-2.5 py-1 text-xs font-semibold ${booking.isDone ? "bg-blue-100 text-blue-700" : "bg-slate-200 text-slate-700"}`}
-                            >
-                              {booking.isDone ? "Done" : "Upcoming"}
-                            </span>
-                            {booking.isPaid &&
-                              !booking.isDone &&
-                              isPsychiatrist && (
-                                <StartSessionButton
-                                  bookingId={booking._id.toString()}
-                                />
-                              )}
-                          </td>
-                        </tr>
-                      );
+            <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
+              <table className="min-w-full text-sm">
+                <thead className="bg-slate-100 text-left">
+                  <tr>
+                    <th className="px-4 py-3">Tanggal</th>
+                    <th className="px-4 py-3">Nama</th>
+                    <th className="px-4 py-3">Durasi</th>
+                    <th className="px-4 py-3">Jumlah</th>
+                    <th className="px-4 py-3">Payment</th>
+                    <th className="px-4 py-3">Status</th>
+                    <th className="px-4 py-3">Session</th>
+                  </tr>
+                </thead>
 
-                      return rowContent;
-                    })}
-                  </tbody>
-                </table>
-              </div>
+                <tbody>
+                  {bookings.map((booking) => (
+                    <tr
+                      key={booking._id}
+                      className={`hover:bg-slate-50 ${
+                        isPsychiatrist ? "cursor-pointer" : ""
+                      }`}
+                      onClick={() => {
+                        if (!isPsychiatrist) return;
+                        if (!booking.userId) return;
+
+                        router.push(`/formbrief/${booking.userId}`);
+                      }}
+                    >
+                      <td className="px-4 py-3">
+                        {formatDateTime(booking.date)}
+                      </td>
+
+                      <td className="px-4 py-3 font-medium">
+                        {role === "DOCTOR"
+                          ? booking.userName
+                          : booking.staffName}
+                      </td>
+
+                      <td className="px-4 py-3">
+                        {booking.sessionDuration} min
+                      </td>
+
+                      <td className="px-4 py-3">
+                        {formatAmount(booking.amount)}
+                      </td>
+
+                      <td className="px-4 py-3">
+                        {booking.isPaid ? (
+                          <span className="text-green-600">Paid</span>
+                        ) : isPsychiatrist ? (
+                          <span>Unpaid</span>
+                        ) : (
+                          <Link href={`/payment?bookingId=${booking._id}`}>
+                            Pay
+                          </Link>
+                        )}
+                      </td>
+
+                      <td className="px-4 py-3">
+                        {booking.isDone ? "Done" : "Upcoming"}
+                      </td>
+
+                      <td className="px-4 py-3">
+                        {booking.isPaid && !booking.isDone && (
+                          <StartSessionButton bookingId={booking._id} />
+                        )}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             </div>
           )}
         </div>

@@ -43,8 +43,7 @@ export default async function FormBriefPage({ params }: FormBriefPageProps) {
   if (session.user.role !== "DOCTOR") redirect("/");
 
   // 2️⃣ Get userId from params
-  const {userId} = await params;
-  console.log('userId', userId)
+  const {userId} =await params;
 
   // 3️⃣ Fetch data from API (server component can use relative URL)
   let data: FormBriefItem[] = [];
