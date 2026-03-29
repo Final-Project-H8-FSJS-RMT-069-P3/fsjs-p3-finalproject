@@ -2,6 +2,8 @@
 import { Metadata } from "next";
 import Link from "next/link";
 import BookingForm from "../../components/BookingForm";
+import { auth } from "@/lib/auth";
+import { redirect } from "next/navigation";
 
 export const metadata: Metadata = {
   title: "Booking Form",
@@ -15,6 +17,11 @@ type BookPageProps = {
 };
 
 export default async function BookPage({ searchParams }: BookPageProps) {
+  const session = await auth();
+  if (!session) {
+    redirect("/login");
+  }
+
   const params = await searchParams;
   const doctorId = Array.isArray(params.staffId) ? params.staffId[0] : params.staffId;
 
@@ -32,7 +39,6 @@ export default async function BookPage({ searchParams }: BookPageProps) {
 
   return (
     <div>
-      <h1>Book an Appointment</h1>
       <BookingForm staffId={doctorId} />
     </div>
   );

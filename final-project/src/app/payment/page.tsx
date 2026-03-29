@@ -1,4 +1,6 @@
 import PaymentCheckoutClient from "./PaymentCheckoutClient";
+import { auth } from "@/lib/auth";
+import { redirect } from "next/navigation";
 
 type PaymentPageProps = {
   searchParams: Promise<{
@@ -24,6 +26,12 @@ const toPositiveNumber = (value?: string, fallback = 249000) => {
 };
 
 export default async function PaymentPage({ searchParams }: PaymentPageProps) {
+  const session = await auth();
+  const sessionRole = String(session?.user?.role || "").toLowerCase();
+  if (sessionRole === "doctor" || sessionRole === "psychiatrist") {
+    redirect("/bookinglist");
+  }
+
   const params = await searchParams;
 
   const amount = toPositiveNumber(getSingleParam(params.amount));

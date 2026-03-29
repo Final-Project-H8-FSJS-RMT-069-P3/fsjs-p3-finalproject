@@ -3,6 +3,7 @@
 import Navbar from "@/components/navbar";
 import Link from "next/link";
 import { useState, useEffect } from "react";
+import { useSession } from "next-auth/react";
 
 /*
 const PSYCHOLOGISTS = [
@@ -234,6 +235,8 @@ function FaqItem({ question }: { question: string }) {
 }
 
 export default function Home() {
+  const { data: session } = useSession();
+  const qnaHref = session ? "/qna" : "/login";
   const [reviewIdx, setReviewIdx] = useState(0);
   const [hoveredCard, setHoveredCard] = useState<string | null>(null);
   const [doctors, setDoctors] = useState<DoctorCard[]>([]);
@@ -327,7 +330,7 @@ export default function Home() {
               </p>
               <div className="flex flex-col sm:flex-row gap-4">
                 <Link
-                  href="/login"
+                  href={qnaHref}
                   className="bg-orange-500 text-white px-8 py-4 rounded-xl font-bold text-lg shadow-lg hover:shadow-orange-200 hover:shadow-xl transition-all flex items-center justify-center gap-2 active:scale-95"
                 >
                   Konseling Sekarang
