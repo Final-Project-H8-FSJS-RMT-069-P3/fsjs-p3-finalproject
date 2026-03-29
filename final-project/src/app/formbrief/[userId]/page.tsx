@@ -1,5 +1,7 @@
 import { auth } from "@/lib/auth";
 import { redirect } from "next/navigation";
+import { cookies } from "next/headers";
+
 
 interface Brief {
   nama?: string;
@@ -28,15 +30,19 @@ export default async function FormBriefPage({ params }: FormBriefPageProps) {
   if (session.user.role !== "DOCTOR") redirect("/");
 
   // 2️⃣ Get userId from params
-  const {userId} = await params;
-  console.log("UserId:", userId);
+  const {userId} =await params;
 
   // 3️⃣ Fetch data from API (server component can use relative URL)
   let data: FormBriefItem[] = [];
   try {
-    const res = await fetch(`/api/formbrief?userId=${encodeURIComponent(userId)}`, {
+    const cookiesStore=await cookies()
+    const res = await fetch(`http://localhost:3000/api/formbrief?userId=${encodeURIComponent(userId)}`, {
       cache: "no-store",
+      headers:{
+        Cookie:cookiesStore.getAll().map((cookie) => `${cookie.name}=${cookie.value}`).join("; ") 
+      }
     });
+    
     if (res.ok) {
       data = (await res.json()) as FormBriefItem[];
     } else {
