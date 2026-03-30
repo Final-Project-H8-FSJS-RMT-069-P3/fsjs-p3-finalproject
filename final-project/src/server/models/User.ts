@@ -17,10 +17,9 @@ export interface IUser {
     psychiatristInfo?: {
         certificate?: string;
         experience?: number;
-        imageUrl?: string[];
+        imageUrl?: string;
         roleSpecialist?: string;
         speciality?: string[];
-        tags?: string[];
         about?: string;
         price?: number;
         mode?: "online" | "offline" | "online & offline";
