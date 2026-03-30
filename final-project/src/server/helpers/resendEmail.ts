@@ -46,7 +46,7 @@ export async function sendDoctorBookingNotification(params: {
   `;
 
   return resend.emails.send({
-    from: process.env.RESEND_FROM || "no-reply@pendengarmu.com",
+    from: process.env.RESEND_FROM || "no-reply@watisdis31.web.id",
     to: doctorEmail,
     subject,
     html,
