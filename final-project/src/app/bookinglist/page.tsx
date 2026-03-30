@@ -97,6 +97,18 @@ export default function BookingListPage() {
       : "Daftar Booking Saya";
   }, [role]);
 
+  const totalIncome = useMemo(() => {
+    return bookings.reduce((acc, booking) => {
+      return acc + (booking.isPaid ? booking.amount : 0);
+    }, 0);
+  }, [bookings]);
+
+  const totalPatientsServed = useMemo(() => {
+    return bookings.reduce((acc, booking) => {
+      return acc + (booking.isDone ? 1 : 0);
+    }, 0);
+  }, [bookings]);
+
   return (
     <>
       <Navbar />
@@ -109,6 +121,21 @@ export default function BookingListPage() {
             <h1 className="mt-2 text-3xl font-extrabold text-slate-900">
               {pageTitle}
             </h1>
+            {/* Overview Section */}
+            <div className="mt-4 flex gap-8">
+              <div>
+                <div className="text-xs text-slate-500">Total Income</div>
+                <div className="text-xl font-bold text-green-700">
+                  {formatAmount(totalIncome)}
+                </div>
+              </div>
+              <div>
+                <div className="text-xs text-slate-500">Patients Served</div>
+                <div className="text-xl font-bold text-blue-700">
+                  {totalPatientsServed}
+                </div>
+              </div>
+            </div>
           </div>
 
           {loading && (
