@@ -9,6 +9,7 @@ type PaymentCheckoutClientProps = {
   itemName: string;
   orderId: string;
   bookingId?: string;
+  drName?: string;
 };
 
 type PaymentItem = {
@@ -56,6 +57,7 @@ export default function PaymentCheckoutClient({
   itemName,
   orderId,
   bookingId,
+  drName,
 }: PaymentCheckoutClientProps) {
   const [profileName, setProfileName] = useState("");
   const [profileEmail, setProfileEmail] = useState("");
@@ -188,7 +190,16 @@ export default function PaymentCheckoutClient({
             <h2 className="text-lg font-bold text-slate-900">
               Data Pembayaran
             </h2>
-
+            {drName && (
+              <div>
+                <label className="mb-1 block text-sm font-semibold text-slate-700 pt-5">
+                  Psikolog
+                </label>
+                <div className="w-full rounded-lg border border-slate-200 bg-slate-100 px-3 py-2 text-sm text-slate-700">
+                  {drName}
+                </div>
+              </div>
+            )}
             <div className="mt-4 space-y-4">
               <div>
                 <label className="mb-1 block text-sm font-semibold text-slate-700">

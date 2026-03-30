@@ -174,7 +174,7 @@ export default function BookingListPage() {
                             <span>Unpaid</span>
                           ) : (
                             <Link
-                              href={`/payment?bookingId=${booking._id}`}
+                              href={`/payment?bookingId=${booking._id}&drName=${booking.staffName}`}
                               onClick={(e) => e.stopPropagation()}
                             >
                               Pay
