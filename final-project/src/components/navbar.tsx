@@ -58,13 +58,6 @@ export default function Navbar() {
           >
             Konsultasi
           </Link>
-          <Link
-            key="bookinglist"
-            href="/bookinglist"
-            className="text-gray-500 hover:text-blue-700 transition-colors"
-          >
-            List booking
-          </Link>
           {session && (
             <Link
               key="bookinglist"
@@ -140,13 +133,6 @@ export default function Navbar() {
           >
             Konsultasi
           </Link>
-          <Link
-            key="bookinglist"
-            href="/bookinglist"
-            className="block py-3 text-sm font-medium text-gray-600 border-b border-gray-50"
-          >
-            List booking
-          </Link>
           {session && (
             <Link
               key="bookinglist"
@@ -183,3 +169,4 @@ export default function Navbar() {
     </nav>
   );
 }
+  //test
