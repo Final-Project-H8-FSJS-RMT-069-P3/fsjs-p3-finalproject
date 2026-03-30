@@ -92,9 +92,7 @@ export default function BookingListPage() {
   }, []);
 
   const pageTitle = useMemo(() => {
-    return role === "DOCTOR"
-      ? "Daftar Booking Pasien"
-      : "Daftar Booking Saya";
+    return role === "DOCTOR" ? "Daftar Booking Pasien" : "Daftar Booking Saya";
   }, [role]);
 
   return (
@@ -112,9 +110,7 @@ export default function BookingListPage() {
           </div>
 
           {loading && (
-            <div className="bg-white p-8 rounded-2xl shadow-sm">
-              Loading...
-            </div>
+            <div className="bg-white p-8 rounded-2xl shadow-sm">Loading...</div>
           )}
 
           {!loading && error && (
@@ -125,76 +121,160 @@ export default function BookingListPage() {
 
           {!loading && !error && bookings.length > 0 && (
             <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
-              <table className="min-w-full text-sm">
-                <thead className="bg-slate-100 text-left">
-                  <tr>
-                    <th className="px-4 py-3">Tanggal</th>
-                    <th className="px-4 py-3">Nama</th>
-                    <th className="px-4 py-3">Durasi</th>
-                    <th className="px-4 py-3">Jumlah</th>
-                    <th className="px-4 py-3">Payment</th>
-                    <th className="px-4 py-3">Status</th>
-                    <th className="px-4 py-3">Session</th>
-                  </tr>
-                </thead>
+              {/* ===== DESKTOP: tabel (md ke atas) ===== */}
+              <div className="hidden md:block overflow-x-auto">
+                <table className="min-w-full text-sm">
+                  <thead className="bg-slate-100 text-left">
+                    <tr>
+                      <th className="px-4 py-3">Tanggal</th>
+                      <th className="px-4 py-3">Nama</th>
+                      <th className="px-4 py-3">Durasi</th>
+                      <th className="px-4 py-3">Jumlah</th>
+                      <th className="px-4 py-3">Payment</th>
+                      <th className="px-4 py-3">Status</th>
+                      <th className="px-4 py-3">Session</th>
+                    </tr>
+                  </thead>
 
-                <tbody>
-                  {bookings.map((booking) => (
-                    <tr
-                      key={booking._id}
-                      className={`hover:bg-slate-50 ${
-                        isPsychiatrist ? "cursor-pointer" : ""
-                      }`}
-                      onClick={() => {
-                        if (!isPsychiatrist) return;
-                        if (!booking.userId) return;
+                  <tbody>
+                    {bookings.map((booking) => (
+                      <tr
+                        key={booking._id}
+                        className={`hover:bg-slate-50 ${
+                          isPsychiatrist ? "cursor-pointer" : ""
+                        }`}
+                        onClick={() => {
+                          if (!isPsychiatrist) return;
+                          if (!booking.userId) return;
+                          router.push(`/formbrief/${booking.userId}`);
+                        }}
+                      >
+                        <td className="px-4 py-3">
+                          {formatDateTime(booking.date)}
+                        </td>
 
-                        router.push(`/formbrief/${booking.userId}`);
-                      }}
-                    >
-                      <td className="px-4 py-3">
-                        {formatDateTime(booking.date)}
-                      </td>
+                        <td className="px-4 py-3 font-medium">
+                          {role === "DOCTOR"
+                            ? booking.userName
+                            : booking.staffName}
+                        </td>
 
-                      <td className="px-4 py-3 font-medium">
+                        <td className="px-4 py-3">
+                          {booking.sessionDuration} min
+                        </td>
+
+                        <td className="px-4 py-3">
+                          {formatAmount(booking.amount)}
+                        </td>
+
+                        <td className="px-4 py-3">
+                          {booking.isPaid ? (
+                            <span className="text-green-600">Paid</span>
+                          ) : isPsychiatrist ? (
+                            <span>Unpaid</span>
+                          ) : (
+                            <Link
+                              href={`/payment?bookingId=${booking._id}&drName=${booking.staffName}`}
+                              onClick={(e) => e.stopPropagation()}
+                            >
+                              Pay
+                            </Link>
+                          )}
+                        </td>
+
+                        <td className="px-4 py-3">
+                          {booking.isDone ? "Done" : "Upcoming"}
+                        </td>
+
+                        <td className="px-4 py-3">
+                          {booking.isPaid && !booking.isDone && (
+                            <div onClick={(e) => e.stopPropagation()}>
+                              <StartSessionButton bookingId={booking._id} />
+                            </div>
+                          )}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+
+              {/* ini MOBILE: card layout (di bawah md) */}
+              <div className="md:hidden divide-y divide-slate-100">
+                {bookings.map((booking) => (
+                  <div
+                    key={booking._id}
+                    className={`p-4 space-y-2 ${
+                      isPsychiatrist ? "cursor-pointer active:bg-slate-50" : ""
+                    }`}
+                    onClick={() => {
+                      if (!isPsychiatrist || !booking.userId) return;
+                      router.push(`/formbrief/${booking.userId}`);
+                    }}
+                  >
+                    {/* Baris atas: nama + badge status */}
+                    <div className="flex justify-between items-start">
+                      <span className="font-semibold text-slate-900">
                         {role === "DOCTOR"
                           ? booking.userName
                           : booking.staffName}
-                      </td>
+                      </span>
+                      <span
+                        className={`text-xs font-medium px-2 py-0.5 rounded-full ${
+                          booking.isDone
+                            ? "bg-slate-100 text-slate-500"
+                            : "bg-blue-100 text-blue-700"
+                        }`}
+                      >
+                        {booking.isDone ? "Done" : "Upcoming"}
+                      </span>
+                    </div>
 
-                      <td className="px-4 py-3">
-                        {booking.sessionDuration} min
-                      </td>
-
-                      <td className="px-4 py-3">
+                    {/* Info tanggal & durasi */}
+                    <div className="text-xs text-slate-500 space-y-1">
+                      <p>📅 {formatDateTime(booking.date)}</p>
+                      <p>
+                        ⏱ {booking.sessionDuration} min &nbsp;·&nbsp;{" "}
                         {formatAmount(booking.amount)}
-                      </td>
+                      </p>
+                    </div>
 
-                      <td className="px-4 py-3">
+                    {/* Baris bawah: payment + tombol video call */}
+                    <div className="flex items-center justify-between pt-1">
+                      <div>
                         {booking.isPaid ? (
-                          <span className="text-green-600">Paid</span>
+                          <span className="text-green-600 text-xs font-medium">
+                            ✓ Paid
+                          </span>
                         ) : isPsychiatrist ? (
-                          <span>Unpaid</span>
+                          <span className="text-xs text-slate-400">Unpaid</span>
                         ) : (
-                          <Link href={`/payment?bookingId=${booking._id}`}>
-                            Pay
+                          <Link
+                            href={`/payment?bookingId=${booking._id}`}
+                            className="text-xs text-blue-600 underline"
+                            onClick={(e) => e.stopPropagation()}
+                          >
+                            Pay Now
                           </Link>
                         )}
-                      </td>
+                      </div>
 
-                      <td className="px-4 py-3">
-                        {booking.isDone ? "Done" : "Upcoming"}
-                      </td>
-
-                      <td className="px-4 py-3">
-                        {booking.isPaid && !booking.isDone && (
+                      {/* Tombol video call */}
+                      {booking.isPaid && !booking.isDone && (
+                        <div onClick={(e) => e.stopPropagation()}>
                           <StartSessionButton bookingId={booking._id} />
-                        )}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {!loading && !error && bookings.length === 0 && (
+            <div className="bg-white p-8 rounded-2xl shadow-sm text-slate-500 text-center">
+              Tidak ada booking.
             </div>
           )}
         </div>

@@ -6,7 +6,7 @@ export default function AboutPage() {
     <>
       <Navbar />
       <div className="bg-white font-sans antialiased text-gray-900">
-        <header className="relative bg-blue-900 text-white py-40 overflow-hidden">
+        <header className="relative bg-blue-900 text-white py-40 overflow-hidden select-none">
           <div className="absolute top-0 left-0 w-96 h-96 bg-white/10 rounded-full -translate-x-1/2 -translate-y-1/2 pointer-events-none" />
           <div className="absolute bottom-0 right-0 w-96 h-96 bg-white/10 rounded-full translate-x-1/2 translate-y-1/2 pointer-events-none" />
           <div className="container mx-auto px-6 text-center relative z-10">

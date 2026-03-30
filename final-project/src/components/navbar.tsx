@@ -24,11 +24,7 @@ export default function Navbar() {
     <nav className="fixed top-0 w-full z-50 bg-white/80 backdrop-blur-md shadow-sm">
       <div className="flex justify-between items-center px-6 py-4 max-w-7xl mx-auto">
         <div className="text-2xl font-black text-blue-900 tracking-tighter">
-          <Link
-            key="home"
-            href="/"
-            className=""
-          >
+          <Link key="home" href="/" className="">
             {brandTitle}
           </Link>
         </div>
@@ -81,7 +77,7 @@ export default function Navbar() {
           ) : (
             <Link
               href="/login"
-              className="text-gray-500 hover:text-blue-700 transition-colors"
+              className="cursor-pointer text-gray-500 hover:text-blue-700 transition-colors"
             >
               Masuk / Daftar
             </Link>
@@ -89,7 +85,10 @@ export default function Navbar() {
         </div>
 
         <div className="flex items-center gap-3">
-          <Link href={qnaHref} className="bg-orange-500 text-white px-6 py-2.5 rounded-xl font-bold text-sm hover:opacity-90 active:scale-95 transition-all shadow-md hidden sm:block">
+          <Link
+            href={qnaHref}
+            className="bg-orange-500 text-white px-6 py-2.5 rounded-xl font-bold text-sm hover:opacity-90 active:scale-95 transition-all shadow-md hidden sm:block"
+          >
             Konseling Sekarang
           </Link>
           <button
@@ -138,7 +137,7 @@ export default function Navbar() {
             <Link
               key="bookinglist"
               href="/bookinglist"
-              className="block py-3 text-sm font-medium text-gray-600 border-b border-gray-50"
+              className="cursor-pointer block py-3 text-sm font-medium text-gray-600 border-b border-gray-50"
             >
               List booking
             </Link>
@@ -153,7 +152,7 @@ export default function Navbar() {
           ) : (
             <Link
               href="/login"
-              className="block py-3 text-sm font-medium text-gray-600 border-b border-gray-50"
+              className="cursor-pointer block py-3 text-sm font-medium text-gray-600 border-b border-gray-50"
             >
               Masuk / Daftar
             </Link>
@@ -161,7 +160,7 @@ export default function Navbar() {
 
           <Link
             href={qnaHref}
-            className="mt-4 block w-full py-3 bg-orange-500 text-white font-bold rounded-xl text-center"
+            className="cursor-pointer mt-4 block w-full py-3 bg-orange-500 text-white font-bold rounded-xl text-center"
           >
             Konseling Sekarang
           </Link>
