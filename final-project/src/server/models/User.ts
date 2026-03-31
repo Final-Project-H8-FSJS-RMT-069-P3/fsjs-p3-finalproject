@@ -21,13 +21,17 @@ export interface IUser {
         roleSpecialist?: string;
         speciality?: string[];
         about?: string;
-        price?: number;
+        paket?: IPrice[];
         mode?: "online" | "offline" | "online & offline";
         scheduleDays?: string[];
         scheduleTimes?: string[];
     };
 }
-//! bikin colum paket array of object: isinya itu tipenya apa, sama harga berapa (per sesi)
+
+interface IPrice {
+    price: number;
+    type: "videocall" | "chat-only" | "offline";
+}
 
 
 export default class User {
