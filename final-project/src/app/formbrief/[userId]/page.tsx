@@ -1,7 +1,9 @@
-import { auth } from "@/lib/auth";
-import { redirect } from "next/navigation";
-import { cookies } from "next/headers";
-import ReactMarkdown from "react-markdown";
+"use client";
+
+import { useEffect, useState, useMemo } from "react";
+import Navbar from "@/components/navbar";
+import Link from "next/link";
+import { useParams } from "next/navigation";
 
 interface Brief {
   nama?: string;
@@ -12,185 +14,207 @@ interface Brief {
 
 interface FormBriefItem {
   _id: string;
-  brief?: Brief;
+  brief?: Brief | string;
   createdAt: string;
   result?: string;
 }
 
-interface FormBriefPageProps {
-  params: {
-    userId: string;
+export default function FormBriefListPage() {
+  const params = useParams();
+  const userId = params.userId as string;
+
+  const [data, setData] = useState<FormBriefItem[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  // Helper untuk parsing data brief yang mungkin berbentuk string JSON
+  const parseBrief = (briefData: any): Brief => {
+    if (!briefData) return {};
+    try {
+      return typeof briefData === "string" ? JSON.parse(briefData) : briefData;
+    } catch {
+      return {};
+    }
   };
-}
-function parseBrief(briefData: unknown): Brief {
-  if (!briefData) return {};
 
-  try {
-    if (typeof briefData === "string") {
-      return JSON.parse(briefData);
-    }
-    return briefData as Brief;
-  } catch (err) {
-    console.error("Parse error:", briefData);
-    return {};
-  }
-}
+  useEffect(() => {
+    // Validasi dasar agar tidak menembak API dengan ID yang salah/undefined
+    if (!userId || userId === "undefined") return;
 
-export default async function FormBriefPage({ params }: FormBriefPageProps) {
-  // 1️⃣ Auth check
-  const session = await auth();
-  if (!session?.user) redirect("/login");
+    const fetchData = async () => {
+      try {
+        setLoading(true);
+        const res = await fetch(`/api/formbrief?userId=${userId}`, {
+          cache: "no-store",
+        });
 
-  // 2️⃣ Get userId from params
-  const { userId } = await params;
-  console.log("session.user.id:", session.user.id);
-  console.log("session.user.role:", session.user.role);
-  console.log("params userId:", userId);
-  if (session.user.role !== "DOCTOR" && session.user.id !== userId)
-    redirect("/");
+        if (!res.ok) {
+          const errorData = await res.json();
+          throw new Error(errorData.error || "Gagal mengambil data");
+        }
 
-  // 3️⃣ Fetch data from API (server component can use relative URL)
-  let data: FormBriefItem[] = [];
-  try {
-    const cookiesStore = await cookies();
-    const res = await fetch(
-      `${
-        process.env.NEXT_PUBLIC_BASE_URL
-      }/api/formbrief?userId=${encodeURIComponent(userId)}`,
-      {
-        cache: "no-store",
-        headers: {
-          Cookie: cookiesStore
-            .getAll()
-            .map((cookie) => `${cookie.name}=${cookie.value}`)
-            .join("; "),
-        },
+        const json = await res.json();
+        setData(json);
+      } catch (err: any) {
+        setError(err.message);
+      } finally {
+        setLoading(false);
       }
-    );
-    console.log("RES:", res);
+    };
 
-    if (res.ok) {
-      data = (await res.json()) as FormBriefItem[];
-    } else {
-      console.warn("API returned non-ok status:", res.status);
-    }
-  } catch (err) {
-    console.error("Failed to fetch form brief data:", err);
-  }
+    fetchData();
+  }, [userId]);
 
-  // 4️⃣ Render JSX
   return (
-    <div className="min-h-screen bg-gray-50 px-4 py-12 sm:px-6 lg:px-8">
-      <div className="mx-auto max-w-3xl">
-        {/* Header */}
-        <div className="mb-10">
-          <h1 className="text-3xl font-semibold tracking-tight text-gray-900">
-            Form Brief List
-          </h1>
-          <p className="mt-1 text-sm text-gray-400">
-            {data.length} record{data.length !== 1 ? "s" : ""} ditemukan
-          </p>
-          <div className="mt-4 h-px bg-gray-200" />
-        </div>
-
-        {/* Empty State */}
-        {data.length === 0 ? (
-          <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-gray-200 bg-white py-16 text-center">
-            <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-gray-100">
-              <svg
-                className="h-5 w-5 text-gray-400"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={1.5}
-                  d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-                />
-              </svg>
-            </div>
-            <p className="text-sm font-medium text-gray-500">
-              Belum ada data tersedia
-            </p>
-            <p className="mt-1 text-xs text-gray-400">
-              Data akan muncul setelah form diisi
-            </p>
-          </div>
-        ) : (
-          <div className="space-y-4">
-            {data.map((item) => {
-              const brief = parseBrief(item.brief);
-
-              return (
-                <div
-                  key={item._id}
-                  className="group rounded-2xl border border-gray-100 bg-white p-6 shadow-sm transition-shadow hover:shadow-md"
+    <>
+      <Navbar />
+      <main className="min-h-screen bg-slate-50 px-4 pb-12 pt-28">
+        <div className="mx-auto max-w-5xl">
+          {/* Header Section */}
+          <div className="mb-8 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <nav className="mb-2 flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-slate-400">
+                <Link
+                  href="/bookingform"
+                  className="hover:text-blue-600 transition-colors"
                 >
-                  {/* Top row */}
-                  <div className="flex items-start justify-between gap-4">
-                    <div>
-                      <h2 className="text-base font-semibold text-gray-900">
-                        {brief.nama || "Tanpa Nama"}
-                      </h2>
-                      <p className="mt-0.5 text-xs text-gray-400">
-                        {new Date(item.createdAt).toLocaleString("id-ID", {
-                          day: "numeric",
-                          month: "long",
-                          year: "numeric",
-                          hour: "2-digit",
-                          minute: "2-digit",
-                        })}
-                      </p>
-                    </div>
-                    {brief.mood && (
-                      <span className="shrink-0 rounded-full bg-gray-100 px-3 py-1 text-xs font-medium text-gray-600">
-                        {brief.mood}
-                      </span>
-                    )}
-                  </div>
-
-                  {/* Divider */}
-                  <div className="my-4 h-px bg-gray-100" />
-
-                  {/* Detail grid */}
-                  <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-                    <div>
-                      <p className="text-xs font-medium uppercase tracking-wider text-gray-400">
-                        Keluhan Utama
-                      </p>
-                      <p className="mt-1 text-sm text-gray-700">
-                        {brief.keluhanUtama?.join(", ") || "-"}
-                      </p>
-                    </div>
-                    <div>
-                      <p className="text-xs font-medium uppercase tracking-wider text-gray-400">
-                        Durasi Keluhan
-                      </p>
-                      <p className="mt-1 text-sm text-gray-700">
-                        {brief.durasiKeluhan || "-"}
-                      </p>
-                    </div>
-                  </div>
-
-                  {/* AI Result */}
-                  {item.result && (
-                    <div className="mt-5 rounded-xl border border-blue-100 bg-blue-50 p-4">
-                      <p className="text-xs font-semibold uppercase tracking-wider text-blue-500">
-                        AI Result
-                      </p>
-                      <p className="mt-2 whitespace-pre-line text-sm leading-relaxed text-blue-900">
-                        <ReactMarkdown>{item.result}</ReactMarkdown>
-                      </p>
-                    </div>
-                  )}
-                </div>
-              );
-            })}
+                  Bookings
+                </Link>
+                <span>/</span>
+                <span className="text-blue-600">Form Brief History</span>
+              </nav>
+              <h1 className="text-3xl font-black text-slate-900 tracking-tight">
+                Riwayat Konsultasi
+              </h1>
+              <p className="text-sm text-slate-500">
+                Menampilkan {data.length} catatan brief untuk pasien ini.
+              </p>
+            </div>
           </div>
-        )}
-      </div>
-    </div>
+
+          {/* Content Section */}
+          {loading ? (
+            <div className="flex h-64 items-center justify-center rounded-3xl bg-white shadow-sm border border-slate-100">
+              <div className="flex flex-col items-center gap-3">
+                <div className="h-8 w-8 animate-spin rounded-full border-4 border-blue-600 border-t-transparent"></div>
+                <p className="text-sm font-bold text-slate-400 uppercase tracking-widest">
+                  Memuat Data...
+                </p>
+              </div>
+            </div>
+          ) : error ? (
+            <div className="rounded-2xl border border-red-100 bg-red-50 p-6 text-center">
+              <p className="font-bold text-red-600">{error}</p>
+              <button
+                onClick={() => window.location.reload()}
+                className="mt-4 text-xs font-bold uppercase text-red-700 underline"
+              >
+                Coba Lagi
+              </button>
+            </div>
+          ) : data.length === 0 ? (
+            <div className="flex flex-col items-center justify-center rounded-3xl border-2 border-dashed border-slate-200 bg-white py-20 text-center">
+              <div className="mb-4 rounded-full bg-slate-50 p-4">
+                <svg
+                  className="h-8 w-8 text-slate-300"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                  />
+                </svg>
+              </div>
+              <p className="text-lg font-bold text-slate-900">Belum Ada Data</p>
+              <p className="text-sm text-slate-400">
+                Pasien belum pernah mengisi form brief sebelumnya.
+              </p>
+            </div>
+          ) : (
+            <div className="overflow-hidden rounded-3xl border border-slate-100 bg-white shadow-sm">
+              <div className="overflow-x-auto">
+                <table className="w-full text-left text-sm">
+                  <thead className="bg-slate-50/50 border-b border-slate-100">
+                    <tr>
+                      <th className="px-6 py-4 text-[10px] font-black uppercase tracking-widest text-slate-400">
+                        Tanggal & Waktu
+                      </th>
+                      <th className="px-6 py-4 text-[10px] font-black uppercase tracking-widest text-slate-400">
+                        Nama Pasien
+                      </th>
+                      <th className="px-6 py-4 text-[10px] font-black uppercase tracking-widest text-slate-400">
+                        Mood
+                      </th>
+                      <th className="px-6 py-4 text-[10px] font-black uppercase tracking-widest text-slate-400">
+                        Keluhan
+                      </th>
+                      <th className="px-6 py-4 text-right text-[10px] font-black uppercase tracking-widest text-slate-400">
+                        Action
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-50">
+                    {data.map((item) => {
+                      const brief = parseBrief(item.brief);
+                      return (
+                        <tr
+                          key={item._id}
+                          className="group transition-colors hover:bg-blue-50/30"
+                        >
+                          <td className="whitespace-nowrap px-6 py-5">
+                            <p className="font-bold text-slate-700">
+                              {new Date(item.createdAt).toLocaleDateString(
+                                "id-ID",
+                                {
+                                  day: "numeric",
+                                  month: "short",
+                                  year: "numeric",
+                                }
+                              )}
+                            </p>
+                            <p className="text-[10px] text-slate-400">
+                              {new Date(item.createdAt).toLocaleTimeString(
+                                "id-ID",
+                                { hour: "2-digit", minute: "2-digit" }
+                              )}{" "}
+                              WIB
+                            </p>
+                          </td>
+                          <td className="px-6 py-5 font-extrabold text-slate-900">
+                            {brief.nama || "User"}
+                          </td>
+                          <td className="px-6 py-5">
+                            <span className="inline-flex items-center rounded-full bg-slate-100 px-2.5 py-0.5 text-[10px] font-black uppercase text-slate-600">
+                              {brief.mood || "Normal"}
+                            </span>
+                          </td>
+                          <td className="px-6 py-5">
+                            <p className="max-w-[200px] truncate text-xs text-slate-500">
+                              {brief.keluhanUtama?.join(", ") || "-"}
+                            </p>
+                          </td>
+                          <td className="px-6 py-5 text-right">
+                            <Link
+                              href={`/formbrief/${userId}/${item._id}`}
+                              className="inline-flex items-center rounded-xl bg-blue-50 px-4 py-2 text-xs font-black text-blue-600 transition-all hover:bg-blue-600 hover:text-white active:scale-95"
+                            >
+                              DETAIL
+                            </Link>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
+        </div>
+      </main>
+    </>
   );
 }

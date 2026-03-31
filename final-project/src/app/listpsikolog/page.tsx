@@ -195,7 +195,10 @@ function toDoctorCard(doctor: ApiDoctor, index: number): DoctorCard {
 
   const specialties = doctor.psychiatristInfo?.speciality ?? [];
   const tags = specialties.length > 0 ? specialties : fallbackTags;
-  const modeLabel = specialties.length > 0 ? specialties.slice(0, 2).join(", ") : "Online & Offline";
+  const modeLabel =
+    specialties.length > 0
+      ? specialties.slice(0, 2).join(", ")
+      : "Online & Offline";
 
   return {
     doctorId: doctor._id,
@@ -293,9 +296,7 @@ export default function ListPsikolog() {
         p.name.toLowerCase().includes(query.toLowerCase()) ||
         p.role.toLowerCase().includes(query.toLowerCase()) ||
         p.tags.some((t) => t.toLowerCase().includes(query.toLowerCase()));
-      const matchMode =
-        !modeFilter || p.mode === modeFilter || p.mode === "Online & Offline";
-      return matchTag && matchQuery && matchMode;
+      return matchTag && matchQuery;
     })
     .sort((a, b) => {
       if (sortKey === "rating") return b.rating - a.rating;
@@ -364,20 +365,6 @@ export default function ListPsikolog() {
               placeholder="Cari psikolog, spesialisasi, atau topik..."
               className="flex-1 border-none outline-none text-sm text-gray-900 placeholder:text-gray-400 bg-transparent"
             />
-            <div className="w-px h-6 bg-gray-200" />
-            <select
-              value={modeFilter}
-              onChange={(e) => {
-                setModeFilter(e.target.value);
-                setDisplayed(6);
-              }}
-              className="border-none outline-none text-sm font-semibold text-gray-700 bg-transparent cursor-pointer"
-            >
-              <option value="">Semua Mode</option>
-              <option value="Online">Online</option>
-              <option value="Offline">Offline</option>
-              <option value="Online & Offline">Online & Offline</option>
-            </select>
             <button className="bg-blue-900 text-white px-5 py-2.5 rounded-xl text-sm font-bold hover:bg-blue-800 transition-all active:scale-95">
               Cari Psikolog
             </button>
