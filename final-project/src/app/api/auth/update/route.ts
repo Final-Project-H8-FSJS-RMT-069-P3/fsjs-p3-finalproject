@@ -19,7 +19,7 @@ export async function PATCH(req: Request) {
       { $set: { name, phoneNumber, address } }
     );
 
-    if (psychiatristInfo && session.user.role === 'psychiatrist') {
+    if (psychiatristInfo && session.user.role === 'DOCTOR') {
       await User.updatePsychiatristInfo(session.user.id, psychiatristInfo);
     }
 

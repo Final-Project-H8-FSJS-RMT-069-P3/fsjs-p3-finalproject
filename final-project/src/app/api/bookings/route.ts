@@ -36,6 +36,15 @@ export async function POST(req: Request) {
       createdAt: new Date(),
     };
 
+    // Prevent double-booking for the exact same staff and datetime
+    const existing = await db.collection("UserBookings").findOne({
+      staffId: new ObjectId(staffId),
+      date: bookingData.date,
+    });
+    if (existing) {
+      return NextResponse.json({ message: 'Time slot already booked' }, { status: 409 })
+    }
+
     const result = await db.collection("UserBookings").insertOne(bookingData);
 
     const roomName = `room-${result.insertedId.toString()}`;
