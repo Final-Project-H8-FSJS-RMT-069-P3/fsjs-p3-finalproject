@@ -5,7 +5,15 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { useSession, signOut } from "next-auth/react";
 
-function BurgerMenuDesktop({ handleLogout }: { handleLogout: () => void }) {
+function BurgerMenuDesktop({
+  handleLogout,
+  isUser,
+  userId,
+}: {
+  handleLogout: () => void;
+  isUser: boolean;
+  userId?: string;
+}) {
   const [open, setOpen] = useState(false);
   return (
     <div className="relative ml-4">
@@ -41,9 +49,22 @@ function BurgerMenuDesktop({ handleLogout }: { handleLogout: () => void }) {
         >
           Profile
         </Link>
-        <Link href="/bookinglist" className="block px-5 py-2 text-sm text-gray-700 hover:bg-blue-50 font-medium">
-              List booking
-            </Link>
+        <Link
+          href="/bookinglist"
+          className="block px-5 py-2 text-sm text-gray-700 hover:bg-blue-50 font-medium"
+          onClick={() => setOpen(false)}
+        >
+          List Booking
+        </Link>
+        {isUser && userId && (
+          <Link
+            href={`/formbrief/${userId}`}
+            className="block px-5 py-2 text-sm text-gray-700 hover:bg-blue-50 font-medium"
+            onClick={() => setOpen(false)}
+          >
+            Form Brief
+          </Link>
+        )}
         <button
           onClick={() => {
             setOpen(false);
@@ -66,6 +87,8 @@ export default function Navbar() {
   const sessionRole = String(session?.user?.role || "").toLowerCase();
   const isPsychiatrist =
     sessionRole === "doctor" || sessionRole === "psychiatrist";
+  const isUser = sessionRole === "user";
+  const userId = session?.user?.id as string | undefined;
   const brandTitle = isPsychiatrist ? "pendengarMu - Dokter" : "pendengarMu";
 
   const handleLogout = async () => {
@@ -83,13 +106,22 @@ export default function Navbar() {
         </div>
 
         <div className="hidden md:flex items-center space-x-8 text-sm font-medium">
-          <Link href="/" className="text-gray-500 hover:text-blue-700 transition-colors">
+          <Link
+            href="/"
+            className="text-gray-500 hover:text-blue-700 transition-colors"
+          >
             Home
           </Link>
-          <Link href="/listpsikolog" className="text-gray-500 hover:text-blue-700 transition-colors">
+          <Link
+            href="/listpsikolog"
+            className="text-gray-500 hover:text-blue-700 transition-colors"
+          >
             List Psikolog
           </Link>
-          <Link href="/aboutus" className="text-gray-500 hover:text-blue-700 transition-colors">
+          <Link
+            href="/aboutus"
+            className="text-gray-500 hover:text-blue-700 transition-colors"
+          >
             Tentang kami
           </Link>
         </div>
@@ -115,7 +147,11 @@ export default function Navbar() {
 
           {/* desktop burger/profile menu */}
           {session ? (
-            <BurgerMenuDesktop handleLogout={handleLogout} />
+            <BurgerMenuDesktop
+              handleLogout={handleLogout}
+              isUser={isUser}
+              userId={userId}
+            />
           ) : (
             <Link
               href="/login"
@@ -130,31 +166,52 @@ export default function Navbar() {
       {/* mobile dropdown */}
       {menuOpen && (
         <div className="md:hidden bg-white border-t border-gray-100 px-6 py-4 shadow-lg">
-          <Link href="/home" className="block py-3 text-sm font-medium text-gray-600 border-b border-gray-50">
+          <Link
+            href="/"
+            className="block py-3 text-sm font-medium text-gray-600 border-b border-gray-50"
+          >
             Home
           </Link>
-          <Link href="/listpsikolog" className="block py-3 text-sm font-medium text-gray-600 border-b border-gray-50">
+          <Link
+            href="/listpsikolog"
+            className="block py-3 text-sm font-medium text-gray-600 border-b border-gray-50"
+          >
             List Psikolog
           </Link>
-          <Link href="/aboutus" className="block py-3 text-sm font-medium text-gray-600 border-b border-gray-50">
+          <Link
+            href="/aboutus"
+            className="block py-3 text-sm font-medium text-gray-600 border-b border-gray-50"
+          >
             Tentang kami
           </Link>
           {session && (
             <Link
-              key="bookinglist"
               href="/bookinglist"
-              className="cursor-pointer block py-3 text-sm font-medium text-gray-600 border-b border-gray-50"
+              className="block py-3 text-sm font-medium text-gray-600 border-b border-gray-50"
             >
-              List booking
+              List Booking
             </Link>
           )}
-
+          {session && isUser && userId && (
+            <Link
+              href={`/formbrief/${userId}`}
+              className="block py-3 text-sm font-medium text-gray-600 border-b border-gray-50"
+            >
+              Form Brief
+            </Link>
+          )}
           {session ? (
             <>
-              <Link href="/profile" className="block py-3 text-sm font-medium text-blue-600 border-b border-gray-50">
+              <Link
+                href="/profile"
+                className="block py-3 text-sm font-medium text-blue-600 border-b border-gray-50"
+              >
                 Profile
               </Link>
-              <button onClick={handleLogout} className="cursor-pointer block w-full text-left py-3 text-sm font-medium text-red-600 border-b border-gray-50">
+              <button
+                onClick={handleLogout}
+                className="cursor-pointer block w-full text-left py-3 text-sm font-medium text-red-600 border-b border-gray-50"
+              >
                 Logout
               </button>
             </>
