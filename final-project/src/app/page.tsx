@@ -4,6 +4,7 @@ import Navbar from "@/components/navbar";
 import Link from "next/link";
 import { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
+import Carousel3D from "@/components/animation";
 
 /*
 const PSYCHOLOGISTS = [
@@ -386,19 +387,21 @@ export default function Home() {
                 </p>
               </div>
             </div>
-            <div className="relative">
-              <div className="absolute -top-20 -right-20 w-96 h-96 bg-blue-100/30 rounded-full blur-3xl pointer-events-none" />
-              <div className="relative z-10 rounded-[2.5rem] overflow-hidden shadow-2xl rotate-2 aspect-[4/5] bg-gradient-to-br from-blue-100 to-blue-200">
-                <img
-                  src="https://i.pinimg.com/1200x/77/07/33/770733699f05aec6985da6bb637ce4c8.jpg"
-                  alt=""
-                  className="w-full h-full object-cover"
+            <div className="relative w-full py-20">
+              {/* Efek Glow di belakang agar estetik */}
+              <div className="absolute inset-0 bg-blue-200/20 rounded-full blur-[100px] pointer-events-none" />
+
+              {/* Container Utama: Hapus rotate-2 dan overflow-hidden */}
+              <div className="relative z-10 w-full h-[550px] flex items-center justify-center">
+                <Carousel3D
+                  background="transparent"
+                  showReflection={true}
+                  radius={300}
                 />
               </div>
             </div>
           </div>
         </section>
-
         <section className="py-12 bg-white">
           <div className="max-w-7xl mx-auto px-6">
             <div className="grid md:grid-cols-3 gap-8">

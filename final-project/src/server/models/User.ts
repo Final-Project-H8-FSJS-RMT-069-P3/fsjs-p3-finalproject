@@ -27,6 +27,7 @@ export interface IUser {
         scheduleTimes?: string[];
     };
 }
+//! bikin colum paket array of object: isinya itu tipenya apa, sama harga berapa (per sesi)
 
 interface IPrice {
     price: number;
