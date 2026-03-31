@@ -19,8 +19,12 @@ export async function PATCH(req: Request) {
       { $set: { name, phoneNumber, address } }
     );
 
-    if (psychiatristInfo && session.user.role === 'psychiatrist') {
-      await User.updatePsychiatristInfo(session.user.id, psychiatristInfo);
+    // If psychiatristInfo provided, ensure the user in DB is a psychiatrist
+    if (psychiatristInfo) {
+      const user = await User.getUserById(session.user.id);
+      if (user.role === 'psychiatrist') {
+        await User.updatePsychiatristInfo(session.user.id, psychiatristInfo);
+      }
     }
 
     return NextResponse.json({ message: "Profile updated" });
