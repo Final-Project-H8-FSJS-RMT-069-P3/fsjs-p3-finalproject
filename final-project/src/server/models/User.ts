@@ -21,11 +21,16 @@ export interface IUser {
         roleSpecialist?: string;
         speciality?: string[];
         about?: string;
-        price?: number;
+        paket?: IPrice[];
         mode?: "online" | "offline" | "online & offline";
         scheduleDays?: string[];
         scheduleTimes?: string[];
     };
+}
+
+interface IPrice {
+    price: number;
+    type: "videocall" | "chat-only" | "offline";
 }
 
 
