@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { getDB } from "../../../server/config/mongodb"; //<-- import dari src yg bener
 import { ObjectId } from "mongodb"; //<-- import dari src yg bener
+import { SendEmail } from "@/server/helpers/sendEmail";
+import User from "@/server/models/User";
 
 export async function POST(req: Request) {
   try {
@@ -46,6 +48,32 @@ export async function POST(req: Request) {
       roomName: roomName,
       createdAt: new Date() 
     });
+
+    console.log('aku disini')
+
+    const userData = await User.getUserById(bookingData.userId.toString());
+    const doctorData = await User.getUserById(bookingData.staffId.toString());
+
+    // build a tidy email payload and send without breaking the booking flow
+    const emailPayload = {
+      doctorEmail: 'vincentiusedward31@gmail.com',
+      doctorName: doctorData?.name,
+      patientName: userData?.name ?? 'Unknown Patient',
+      patientPhone: userData?.phoneNumber,
+      patientAddress: userData?.address,
+      bookingDate: bookingData.date.toLocaleDateString(),
+      priceTier: bookingData.amount.toString(),
+    };
+
+    try {
+      await SendEmail(emailPayload);
+      console.log('Email sent');
+    } catch (emailErr) {
+      console.error('Failed to send booking email:', emailErr);
+      // don't fail the booking if email sending fails
+    }
+
+    console.log('aku disana')
 
     return NextResponse.json({ 
       message: "Booking created successfully", 

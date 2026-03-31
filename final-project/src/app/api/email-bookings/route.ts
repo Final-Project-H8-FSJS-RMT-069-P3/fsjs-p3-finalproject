@@ -1,4 +1,5 @@
-import { sendDoctorBookingNotification } from "../../../server/helpers/resendEmail";
+import { SendEmail } from "@/server/helpers/sendEmail";
+import type { EmailTemplateProps } from "@/components/EmailTemplate";
 import UserModel from "../../../server/models/User";
 import BookingModel from "../../../server/models/UserBooking";
 import type { Model, Document, Types } from "mongoose";
@@ -109,25 +110,28 @@ export async function POST(req: Request) {
     time,
   });
 
-  try {
-    console.log("[booking] sending email to", doctor?.email);
-    const sendResult = await sendDoctorBookingNotification({
-      doctorEmail: doctor.email ?? "",
-      doctorName: doctor.name,
-      patientName: patient.name ?? "Unknown",
-      patientPhone: patient.phone ?? "-",
-      patientAddress: patient.address ?? "-",
-      bookingDate: booking.date
-        ? new Date(booking.date).toString()
-        : new Date(date).toString(),
-      bookingTime: booking.time ?? time,
-      priceTier: booking.priceTier ?? "Standard",
-      notes: booking.notes ?? notes,
-    });
-    console.log("[booking] email send result:", sendResult);
-  } catch (e) {
-    console.error("Failed to send booking email:", e);
-  }
+  const emailPayload: EmailTemplateProps = {
+    doctorEmail: doctor.email ?? "",
+    doctorName: doctor.name,
+    patientName: patient.name ?? "Unknown",
+    patientPhone: patient.phone ?? "-",
+    patientAddress: patient.address ?? "-",
+    bookingDate: booking.date
+      ? new Date(booking.date).toString()
+      : new Date(date).toString(),
+    bookingTime: booking.time ?? time,
+    priceTier: booking.priceTier ?? "Standard",
+    notes: booking.notes ?? notes,
+  };
+
+  // send email without blocking response
+  void SendEmail(emailPayload)
+    .then(() =>
+      console.log("[email-bookings] email sent to", emailPayload.doctorEmail),
+    )
+    .catch((err) =>
+      console.error("[email-bookings] failed to send email:", err),
+    );
 
   return new Response(JSON.stringify({ message: "Booking successful" }), {
     status: 200,
