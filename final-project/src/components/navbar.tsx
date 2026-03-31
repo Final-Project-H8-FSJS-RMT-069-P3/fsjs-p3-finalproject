@@ -77,7 +77,9 @@ export default function Navbar() {
     <nav className="fixed top-0 w-full z-50 bg-white/80 backdrop-blur-md shadow-sm">
       <div className="flex justify-between items-center px-6 py-4 max-w-7xl mx-auto">
         <div className="text-2xl font-black text-blue-900 tracking-tighter">
-          <Link href="/">{brandTitle}</Link>
+          <Link key="home" href="/" className="">
+            {brandTitle}
+          </Link>
         </div>
 
         <div className="hidden md:flex items-center space-x-8 text-sm font-medium">
@@ -90,6 +92,37 @@ export default function Navbar() {
           <Link href="/aboutus" className="text-gray-500 hover:text-blue-700 transition-colors">
             Tentang kami
           </Link>
+          <Link
+            key="kontenpsikologi"
+            href="/qna"
+            className="text-gray-500 hover:text-blue-700 transition-colors"
+          >
+            Konsultasi
+          </Link>
+          {session && (
+            <Link
+              key="bookinglist"
+              href="/bookinglist"
+              className="text-gray-500 hover:text-blue-700 transition-colors"
+            >
+              List booking
+            </Link>
+          )}
+          {session ? (
+            <button
+              onClick={handleLogout}
+              className="cursor-pointer text-gray-500 hover:text-red-600 transition-colors"
+            >
+              Logout
+            </button>
+          ) : (
+            <Link
+              href="/login"
+              className="cursor-pointer text-gray-500 hover:text-blue-700 transition-colors"
+            >
+              Masuk / Daftar
+            </Link>
+          )}
         </div>
 
         <div className="flex items-center gap-3">
@@ -138,7 +171,11 @@ export default function Navbar() {
             Tentang kami
           </Link>
           {session && (
-            <Link href="/bookinglist" className="block py-3 text-sm font-medium text-gray-600 border-b border-gray-50">
+            <Link
+              key="bookinglist"
+              href="/bookinglist"
+              className="cursor-pointer block py-3 text-sm font-medium text-gray-600 border-b border-gray-50"
+            >
               List booking
             </Link>
           )}
@@ -153,12 +190,18 @@ export default function Navbar() {
               </button>
             </>
           ) : (
-            <Link href="/login" className="block py-3 text-sm font-medium text-gray-600 border-b border-gray-50">
+            <Link
+              href="/login"
+              className="cursor-pointer block py-3 text-sm font-medium text-gray-600 border-b border-gray-50"
+            >
               Masuk / Daftar
             </Link>
           )}
 
-          <Link href={qnaHref} className="mt-4 block w-full py-3 bg-orange-500 text-white font-bold rounded-xl text-center">
+          <Link
+            href={qnaHref}
+            className="cursor-pointer mt-4 block w-full py-3 bg-orange-500 text-white font-bold rounded-xl text-center"
+          >
             Konseling Sekarang
           </Link>
         </div>

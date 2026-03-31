@@ -9,6 +9,8 @@ export interface IUserBooking {
   date: Date;
   sessionDuration: number;
   amount: number;
+  type: "videocall" | "chat-only" | "offline";
+  videoCallUrl?: string | null;
   isPaid: boolean;
   isDone: boolean;
   createdAt: Date;
