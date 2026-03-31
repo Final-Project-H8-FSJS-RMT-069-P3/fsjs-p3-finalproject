@@ -92,37 +92,6 @@ export default function Navbar() {
           <Link href="/aboutus" className="text-gray-500 hover:text-blue-700 transition-colors">
             Tentang kami
           </Link>
-          <Link
-            key="kontenpsikologi"
-            href="/qna"
-            className="text-gray-500 hover:text-blue-700 transition-colors"
-          >
-            Konsultasi
-          </Link>
-          {session && (
-            <Link
-              key="bookinglist"
-              href="/bookinglist"
-              className="text-gray-500 hover:text-blue-700 transition-colors"
-            >
-              List booking
-            </Link>
-          )}
-          {session ? (
-            <button
-              onClick={handleLogout}
-              className="cursor-pointer text-gray-500 hover:text-red-600 transition-colors"
-            >
-              Logout
-            </button>
-          ) : (
-            <Link
-              href="/login"
-              className="cursor-pointer text-gray-500 hover:text-blue-700 transition-colors"
-            >
-              Masuk / Daftar
-            </Link>
-          )}
         </div>
 
         <div className="flex items-center gap-3">
