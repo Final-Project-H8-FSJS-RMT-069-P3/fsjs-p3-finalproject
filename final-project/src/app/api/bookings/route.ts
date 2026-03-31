@@ -16,7 +16,7 @@ export async function POST(req: Request) {
     }
 
     const body = await req.json();
-    const { staffId, formBriefId, date, sessionDuration, amount } = body;
+    const { staffId, formBriefId, date, sessionDuration, amount, sessionType } = body;
 
     if (!staffId || !date) {
       return NextResponse.json({ message: "Missing required fields" }, { status: 400 });
@@ -24,6 +24,8 @@ export async function POST(req: Request) {
 
     const db = await getDB();
     
+    const mapType = sessionType === 'video' ? 'videocall' : sessionType === 'chat' ? 'chat-only' : 'offline'
+
     const bookingData = {
       userId: new ObjectId(session.user.id),
       staffId: new ObjectId(staffId),
@@ -31,6 +33,7 @@ export async function POST(req: Request) {
       date: new Date(date),
       sessionDuration: parseInt(sessionDuration) || 30,
       amount: parseFloat(amount) || 0,
+      type: mapType,
       isPaid: false,
       isDone: false,
       createdAt: new Date(),
