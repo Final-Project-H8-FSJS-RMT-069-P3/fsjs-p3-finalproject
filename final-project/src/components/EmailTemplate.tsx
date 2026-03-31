@@ -1,7 +1,9 @@
 import * as React from "react";
 
 export interface EmailTemplateProps {
+  type: "doctor" | "patient";
   doctorEmail: string;
+  patientEmail: string;
   doctorName?: string;
   patientName: string;
   patientPhone?: string;
@@ -14,6 +16,7 @@ export interface EmailTemplateProps {
 
 export function EmailTemplate(props: EmailTemplateProps) {
   const {
+    type,
     doctorName,
     doctorEmail,
     patientName,
@@ -24,55 +27,71 @@ export function EmailTemplate(props: EmailTemplateProps) {
     priceTier,
     notes,
   } = props;
+  const isDoctor = type === "doctor";
 
   return (
     <div
       style={{
         fontFamily: "Arial, sans-serif",
         color: "#111",
-        lineHeight: 1.4,
+        lineHeight: 1.6,
+        maxWidth: 520,
       }}
     >
-      <h2>New Booking</h2>
+      {/* Greeting */}
+      <p>{isDoctor ? `Dear${doctorName},` : `Dear ${patientName},`}</p>
 
+      {/* Intro */}
       <p>
-        <strong>Doctor:</strong> {doctorName ?? doctorEmail}
+        {isDoctor
+          ? "You have received a new booking with the following details:"
+          : "Your booking has been successfully created with the following details:"}
       </p>
 
-      <h3>Patient info</h3>
-      <ul>
-        <li>
-          <strong>Name:</strong> {patientName}
-        </li>
-        <li>
-          <strong>Phone:</strong> {patientPhone ?? "-"}
-        </li>
-        <li>
-          <strong>Address:</strong> {patientAddress ?? "-"}
-        </li>
-      </ul>
-
-      <h3>Schedule</h3>
-      <p>
-        {bookingDate}
-        {bookingTime ? " at " + bookingTime : ""}
-      </p>
-
-      <p>
-        <strong>Price tier:</strong> {priceTier ?? "Standard"}
-      </p>
-
-      {notes && (
-        <>
-          <h4>Notes</h4>
-          <p>{notes}</p>
-        </>
+      {/* Patient Info */}
+      {!isDoctor && (
+        <p>
+          <strong>Patient Information</strong>
+          <br />
+          Name&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;: {patientName}
+          <br />
+          Phone&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;: {patientPhone ?? "-"}
+          <br />
+          Address&nbsp;&nbsp;: {patientAddress ?? "-"}
+        </p>
       )}
 
-      <hr />
+      {/* Schedule */}
+      <p>
+        <strong>Schedule</strong>
+        <br />
+        Date&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;: {bookingDate}
+        <br />
+        Time&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;: {bookingTime ?? "-"}
+        <br />
+        Price&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;: {priceTier ?? "Standard"}
+      </p>
 
-      <p style={{ fontSize: 12, color: "#666" }}>
-        This notification was sent automatically.
+      {/* Notes */}
+      {notes && (
+        <p>
+          <strong>Notes</strong>
+          <br />
+          {notes}
+        </p>
+      )}
+
+      {/* Closing */}
+      <p>Please check your dashboard for more details.</p>
+
+      <p>
+        Regards,
+        <br />
+        Your System
+      </p>
+
+      <p style={{ fontSize: 12, color: "#666", marginTop: 30 }}>
+        This email was sent automatically.
       </p>
     </div>
   );

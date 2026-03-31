@@ -21,10 +21,13 @@ const from = rawFrom.includes("<")
     : "PendengarMu <no-reply@watisdis.web.id>";
 
 export async function SendEmail(payload: EmailTemplateProps) {
-  if (!payload?.doctorEmail) {
+  if (payload.type === "doctor" && !payload?.doctorEmail) {
     throw new Error("Missing recipient email in SendEmail payload");
   }
-
+  if (payload.type === "patient" && !payload?.patientEmail) {
+    throw new Error("Missing recipient email in SendEmail payload");
+  }
+    
   const apiKey = process.env.RESEND_API_KEY;
   if (!apiKey || !ResendClient) {
     // No API key or Resend package — skip sending in non-production/dev.
@@ -34,12 +37,18 @@ export async function SendEmail(payload: EmailTemplateProps) {
   }
 
   const resend = new ResendClient(apiKey);
+  const to = payload.type === "doctor" ? payload.doctorEmail : payload.patientEmail;
+  console.log("SendEmail TO:", to);
+console.log("TYPE:", payload.type);
+
+  const subject = payload.type === "doctor" ? `New booking — ${payload.patientName}` : `Booking Confirmation — ${payload.doctorName}`;  
+  
 
   try {
     const result = await resend.emails.send({
       from,
-      to: [payload.doctorEmail],
-      subject: `New booking — ${payload.patientName}`,
+      to: [to],
+      subject,
       react: EmailTemplate(payload),
     });
 
