@@ -278,124 +278,86 @@ export default function BookingListPage() {
           )}
 
           {!loading && !error && bookings.length > 0 && (
-            <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
-              <table className="min-w-full text-sm">
-                <thead className="bg-slate-100 text-left">
-                  <tr>
-                    <th className="px-4 py-3">Tanggal</th>
-                    <th className="px-4 py-3">Nama</th>
-                    <th className="px-4 py-3">Durasi</th>
-                    <th className="px-4 py-3">Jumlah</th>
-                    <th className="px-4 py-3">Payment</th>
-                    <th className="px-4 py-3">Status</th>
-                    <th className="px-4 py-3">Session</th>
-                  </tr>
-                </thead>
-
-                <tbody>
-                  {filteredBookings.length === 0 ? (
+            <>
+              <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
+                <table className="min-w-full text-sm">
+                  <thead className="bg-slate-100 text-left">
                     <tr>
-                      <td
-                        colSpan={7}
-                        className="px-4 py-6 text-center text-slate-500"
-                      >
-                        No bookings found.
-                      </td>
+                      <th className="px-4 py-3">Tanggal</th>
+                      <th className="px-4 py-3">Nama</th>
+                      <th className="px-4 py-3">Durasi</th>
+                      <th className="px-4 py-3">Jumlah</th>
+                      <th className="px-4 py-3">Payment</th>
+                      <th className="px-4 py-3">Status</th>
+                      <th className="px-4 py-3">Session</th>
                     </tr>
-                  ) : (
-                    filteredBookings.map((booking) => (
-                      <tr
-                        key={booking._id}
-                        className={`hover:bg-slate-50 ${
-                          isPsychiatrist ? "cursor-pointer" : ""
-                        }`}
-                        onClick={() => {
-                          if (!isPsychiatrist) return;
-                          if (!booking.userId) return;
-                          router.push(`/formbrief/${booking.userId}`);
-                        }}
-                      >
-                        <td className="px-4 py-3">
-                          {formatDateTime(booking.date)}
-                        </td>
+                  </thead>
 
-                        <td className="px-4 py-3 font-medium">
-                          {role === "DOCTOR"
-                            ? booking.userName
-                            : booking.staffName}
-                        </td>
-
-                        <td className="px-4 py-3">
-                          {booking.sessionDuration} min
-                        </td>
-
-                        <td className="px-4 py-3">
-                          {formatAmount(booking.amount)}
-                        </td>
-
-                        <td className="px-4 py-3">
-                          {booking.isPaid ? (
-                            <span className="text-green-600">Paid</span>
-                          ) : isPsychiatrist ? (
-                            <span>Unpaid</span>
-                          ) : (
-                            <Link href={`/payment?bookingId=${booking._id}`}>
-                              Pay
-                            </Link>
-                          )}
-                        </td>
-
-                        <td className="px-4 py-3">
-                          {booking.isDone ? "Done" : "Upcoming"}
-                        </td>
-
-                        <td className="px-4 py-3">
-                          {booking.isPaid && !booking.isDone && (
-                            <StartSessionButton bookingId={booking._id} />
-                          )}
+                  <tbody>
+                    {filteredBookings.length === 0 ? (
+                      <tr>
+                        <td
+                          colSpan={7}
+                          className="px-4 py-6 text-center text-slate-500"
+                        >
+                          No bookings found.
                         </td>
                       </tr>
-                    ))
-                  )}
-                </tbody>
-              </table>
+                    ) : (
+                      filteredBookings.map((booking) => (
+                        <tr
+                          key={booking._id}
+                          className={`hover:bg-slate-50 ${
+                            isPsychiatrist ? "cursor-pointer" : ""
+                          }`}
+                          onClick={() => {
+                            if (!isPsychiatrist) return;
+                            if (!booking.userId) return;
+                            router.push(`/formbrief/${booking.userId}`);
+                          }}
+                        >
+                          <td className="px-4 py-3">
+                            {formatDateTime(booking.date)}
+                          </td>
 
-                        <td className="px-4 py-3">
-                          {booking.sessionDuration} min
-                        </td>
+                          <td className="px-4 py-3 font-medium">
+                            {role === "DOCTOR"
+                              ? booking.userName
+                              : booking.staffName}
+                          </td>
 
-                        <td className="px-4 py-3">
-                          {formatAmount(booking.amount)}
-                        </td>
+                          <td className="px-4 py-3">
+                            {booking.sessionDuration} min
+                          </td>
 
-                        <td className="px-4 py-3">
-                          {booking.isPaid ? (
-                            <span className="text-green-600">Paid</span>
-                          ) : isPsychiatrist ? (
-                            <span>Unpaid</span>
-                          ) : (
-                            <Link
-                              href={`/payment?bookingId=${booking._id}&drName=${booking.staffName}`}
-                              onClick={(e) => e.stopPropagation()}
-                            >
-                              Pay
-                            </Link>
-                          )}
-                        </td>
+                          <td className="px-4 py-3">
+                            {formatAmount(booking.amount)}
+                          </td>
 
-                        <td className="px-4 py-3">
-                          {booking.isDone ? "Done" : "Upcoming"}
-                        </td>
+                          <td className="px-4 py-3">
+                            {booking.isPaid ? (
+                              <span className="text-green-600">Paid</span>
+                            ) : isPsychiatrist ? (
+                              <span>Unpaid</span>
+                            ) : (
+                              <Link href={`/payment?bookingId=${booking._id}`}>
+                                Pay
+                              </Link>
+                            )}
+                          </td>
 
-                        <td className="px-4 py-3">
-                          {booking.isPaid && !booking.isDone && (
-                            <div onClick={(e) => e.stopPropagation()}>
+                          <td className="px-4 py-3">
+                            {booking.isDone ? "Done" : "Upcoming"}
+                          </td>
+
+                          <td className="px-4 py-3">
+                            {booking.isPaid && !booking.isDone && (
                               <StartSessionButton bookingId={booking._id} />
-                            </div>
-                          )}
-                        </td>
-                      </tr>
-                    ))}
+                            )}
+                          </td>
+                        </tr>
+                      ))
+                    )}
                   </tbody>
                 </table>
               </div>
@@ -470,9 +432,8 @@ export default function BookingListPage() {
                   </div>
                 ))}
               </div>
-            </div>
+            </>
           )}
-
           {!loading && !error && bookings.length === 0 && (
             <div className="bg-white p-8 rounded-2xl shadow-sm text-slate-500 text-center">
               Tidak ada booking.
