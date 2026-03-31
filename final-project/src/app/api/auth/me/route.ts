@@ -22,6 +22,10 @@ export async function GET() {
         id: user._id.toString(),
         name: user.name,
         email: user.email,
+        role: user.role,
+        phoneNumber: user.phoneNumber ?? null,
+        address: user.address ?? null,
+        psychiatristInfo: user.psychiatristInfo ?? null,
       },
     });
   } catch (error: unknown) {
