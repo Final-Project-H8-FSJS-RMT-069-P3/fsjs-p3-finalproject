@@ -5,6 +5,59 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { useSession, signOut } from "next-auth/react";
 
+function BurgerMenuDesktop({ handleLogout }: { handleLogout: () => void }) {
+  const [open, setOpen] = useState(false);
+  return (
+    <div className="relative ml-4">
+      <button
+        className="flex items-center justify-center w-10 h-10 rounded-full bg-blue-50 hover:bg-blue-100 border border-blue-100 focus:outline-none"
+        onClick={() => setOpen((v) => !v)}
+        aria-label="Open user menu"
+        type="button"
+      >
+        <svg
+          className="w-6 h-6 text-blue-700"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+          viewBox="0 0 24 24"
+        >
+          <circle cx="12" cy="7" r="4" />
+          <path d="M5.5 21a7.5 7.5 0 0 1 13 0" />
+        </svg>
+      </button>
+
+      <div
+        className={`absolute right-0 mt-2 w-40 bg-white border border-gray-100 rounded-xl shadow-lg py-2 z-50 transform transition-all duration-200 origin-top-right ${
+          open
+            ? "opacity-100 translate-y-0 scale-100 pointer-events-auto"
+            : "opacity-0 translate-y-2 scale-95 pointer-events-none"
+        }`}
+      >
+        <Link
+          href="/profile"
+          className="block px-5 py-2 text-sm text-gray-700 hover:bg-blue-50 font-medium"
+          onClick={() => setOpen(false)}
+        >
+          Profile
+        </Link>
+        <Link href="/bookinglist" className="block px-5 py-2 text-sm text-gray-700 hover:bg-blue-50 font-medium">
+              List booking
+            </Link>
+        <button
+          onClick={() => {
+            setOpen(false);
+            handleLogout();
+          }}
+          className="block w-full text-left px-5 py-2 text-sm text-red-600 hover:bg-red-50 font-medium"
+        >
+          Logout
+        </button>
+      </div>
+    </div>
+  );
+}
+
 export default function Navbar() {
   const [menuOpen, setMenuOpen] = useState(false);
   const { data: session } = useSession();
@@ -30,25 +83,13 @@ export default function Navbar() {
         </div>
 
         <div className="hidden md:flex items-center space-x-8 text-sm font-medium">
-          <Link
-            key="home"
-            href="/"
-            className="text-gray-500 hover:text-blue-700 transition-colors"
-          >
+          <Link href="/" className="text-gray-500 hover:text-blue-700 transition-colors">
             Home
           </Link>
-          <Link
-            key="listpsikolog"
-            href="/listpsikolog"
-            className="text-gray-500 hover:text-blue-700 transition-colors"
-          >
+          <Link href="/listpsikolog" className="text-gray-500 hover:text-blue-700 transition-colors">
             List Psikolog
           </Link>
-          <Link
-            key="aboutus"
-            href="/aboutus"
-            className="text-gray-500 hover:text-blue-700 transition-colors"
-          >
+          <Link href="/aboutus" className="text-gray-500 hover:text-blue-700 transition-colors">
             Tentang kami
           </Link>
           <Link
@@ -91,47 +132,43 @@ export default function Navbar() {
           >
             Konseling Sekarang
           </Link>
+
+          {/* mobile menu toggle */}
           <button
             className="md:hidden flex flex-col gap-1.5 p-1"
             onClick={() => setMenuOpen(!menuOpen)}
+            aria-label="Toggle mobile menu"
           >
             <span className="block w-5 h-0.5 bg-gray-700 rounded" />
             <span className="block w-5 h-0.5 bg-gray-700 rounded" />
             <span className="block w-5 h-0.5 bg-gray-700 rounded" />
           </button>
+
+          {/* desktop burger/profile menu */}
+          {session ? (
+            <BurgerMenuDesktop handleLogout={handleLogout} />
+          ) : (
+            <Link
+              href="/login"
+              className="bg-blue-500 text-white px-6 py-2.5 rounded-xl font-bold text-sm hover:opacity-90 active:scale-95 transition-all shadow-md hidden sm:block"
+            >
+              Masuk / Daftar
+            </Link>
+          )}
         </div>
       </div>
 
-      {/* ini untuk tampilan mobilenya */}
+      {/* mobile dropdown */}
       {menuOpen && (
         <div className="md:hidden bg-white border-t border-gray-100 px-6 py-4 shadow-lg">
-          <Link
-            key="home"
-            href="/home"
-            className="block py-3 text-sm font-medium text-gray-600 border-b border-gray-50"
-          >
+          <Link href="/home" className="block py-3 text-sm font-medium text-gray-600 border-b border-gray-50">
             Home
           </Link>
-          <Link
-            key="listpsikolog"
-            href="/listpsikolog"
-            className="block py-3 text-sm font-medium text-gray-600 border-b border-gray-50"
-          >
+          <Link href="/listpsikolog" className="block py-3 text-sm font-medium text-gray-600 border-b border-gray-50">
             List Psikolog
           </Link>
-          <Link
-            key="aboutus"
-            href="/aboutus"
-            className="block py-3 text-sm font-medium text-gray-600 border-b border-gray-50"
-          >
+          <Link href="/aboutus" className="block py-3 text-sm font-medium text-gray-600 border-b border-gray-50">
             Tentang kami
-          </Link>
-          <Link
-            key="kontenpsikologi"
-            href="/qna"
-            className="block py-3 text-sm font-medium text-gray-600 border-b border-gray-50"
-          >
-            Konsultasi
           </Link>
           {session && (
             <Link
@@ -142,13 +179,16 @@ export default function Navbar() {
               List booking
             </Link>
           )}
+
           {session ? (
-            <button
-              onClick={handleLogout}
-              className="cursor-pointer block w-full text-left py-3 text-sm font-medium text-red-600 border-b border-gray-50"
-            >
-              Logout
-            </button>
+            <>
+              <Link href="/profile" className="block py-3 text-sm font-medium text-blue-600 border-b border-gray-50">
+                Profile
+              </Link>
+              <button onClick={handleLogout} className="cursor-pointer block w-full text-left py-3 text-sm font-medium text-red-600 border-b border-gray-50">
+                Logout
+              </button>
+            </>
           ) : (
             <Link
               href="/login"
@@ -169,4 +209,3 @@ export default function Navbar() {
     </nav>
   );
 }
-  //test
