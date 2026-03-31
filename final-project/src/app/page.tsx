@@ -63,6 +63,7 @@ type ApiDoctor = {
     certificate?: string;
     experience?: number;
     scheduleDays?: string[];
+    speciality?: string[];
   };
 };
 
@@ -293,7 +294,7 @@ export default function Home() {
                 ? `${doctor.psychiatristInfo.experience}+`
                 : "Baru",
             tags:
-              doctor.psychiatristInfo?.scheduleDays?.slice(0, 3) ||
+              doctor.psychiatristInfo?.speciality ||
               DEFAULT_DOCTOR_TAGS,
             img: DEFAULT_DOCTOR_IMAGES[index % DEFAULT_DOCTOR_IMAGES.length],
           })
@@ -405,66 +406,75 @@ export default function Home() {
         <section className="py-12 bg-white">
           <div className="max-w-7xl mx-auto px-6">
             <div className="grid md:grid-cols-3 gap-8">
-              {[
-                {
-                  title: "Bisa Online/Offline",
-                  desc: "Pilih kenyamananmu sendiri, via video call atau tatap muka langsung.",
-                  icon: (
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      d="M15 10l4.553-2.069A1 1 0 0121 8.87v6.26a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"
-                    />
-                  ),
-                },
-                {
-                  title: "Biaya Terjangkau",
-                  desc: "Kesehatan mental untuk semua dengan harga yang transparan dan kompetitif.",
-                  icon: (
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"
-                    />
-                  ),
-                },
-                {
-                  title: "Psikolog Terpercaya",
-                  desc: "Seluruh tim kami adalah psikolog klinis yang telah melewati seleksi ketat.",
-                  icon: (
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"
-                    />
-                  ),
-                },
-              ].map((item) => (
-                <div
-                  key={item.title}
-                  className="flex items-start gap-4 p-6 rounded-2xl hover:bg-blue-50/50 transition-colors group"
-                >
-                  <div className="w-14 h-14 shrink-0 rounded-2xl bg-blue-100 flex items-center justify-center text-blue-900 group-hover:scale-110 transition-transform">
-                    <svg
-                      className="w-7 h-7"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                      strokeWidth={1.8}
-                    >
-                      {item.icon}
-                    </svg>
+              {(() => {
+                const specialtiesLabel =
+                  doctors && doctors.length > 0 && doctors[0].tags && doctors[0].tags.length > 0
+                    ? doctors[0].tags.slice(0, 3).join(", ")
+                    : "Online & Offline";
+
+                const FEATURES = [
+                  {
+                    title: "Spesialisasi",
+                    desc: specialtiesLabel,
+                    icon: (
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        d="M15 10l4.553-2.069A1 1 0 0121 8.87v6.26a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"
+                      />
+                    ),
+                  },
+                  {
+                    title: "Biaya Terjangkau",
+                    desc: "Kesehatan mental untuk semua dengan harga yang transparan dan kompetitif.",
+                    icon: (
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"
+                      />
+                    ),
+                  },
+                  {
+                    title: "Psikolog Terpercaya",
+                    desc: "Seluruh tim kami adalah psikolog klinis yang telah melewati seleksi ketat.",
+                    icon: (
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"
+                      />
+                    ),
+                  },
+                ];
+
+                return FEATURES.map((item) => (
+                  <div
+                    key={item.title}
+                    className="flex items-start gap-4 p-6 rounded-2xl hover:bg-blue-50/50 transition-colors group"
+                  >
+                    <div className="w-14 h-14 shrink-0 rounded-2xl bg-blue-100 flex items-center justify-center text-blue-900 group-hover:scale-110 transition-transform">
+                      <svg
+                        className="w-7 h-7"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                        strokeWidth={1.8}
+                      >
+                        {item.icon}
+                      </svg>
+                    </div>
+                    <div>
+                      <h3 className="font-bold text-xl mb-1 text-gray-900">
+                        {item.title}
+                      </h3>
+                      <p className="text-gray-500 text-sm leading-relaxed">
+                        {item.desc}
+                      </p>
+                    </div>
                   </div>
-                  <div>
-                    <h3 className="font-bold text-xl mb-1 text-gray-900">
-                      {item.title}
-                    </h3>
-                    <p className="text-gray-500 text-sm leading-relaxed">
-                      {item.desc}
-                    </p>
-                  </div>
-                </div>
-              ))}
+                ));
+              })()}
             </div>
           </div>
         </section>
