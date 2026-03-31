@@ -121,6 +121,14 @@ export default function BookingForm({ staffId }: BookingFormProps) {
 
   const formatRp = (n?: number) => (n === undefined ? '-' : n.toLocaleString('id-ID'))
 
+  const formatExperience = (exp?: string | number) => {
+    if (exp === undefined || exp === null) return ''
+    const str = String(exp).trim()
+    if (!str) return ''
+    if (/tahun/i.test(str) || /year/i.test(str)) return str
+    return `${str} Tahun`
+  }
+
   const paketTypes = ['videocall', 'chat-only', 'offline'] as const
   // whether there is at least one available paket option for this doctor
   const anyPaketAvailable = (() => {
@@ -378,14 +386,14 @@ export default function BookingForm({ staffId }: BookingFormProps) {
               {selectedDoctor.psychiatristInfo?.speciality && (
                 <div className="mt-2 flex flex-wrap gap-2">
                   {selectedDoctor.psychiatristInfo.speciality.map((s) => (
-                    <span key={s} className="text-xs bg-white border px-2 py-1 rounded-full text-blue-700">{s}</span>
+                    <span key={s} className="inline-flex items-center h-8 px-2 rounded-md border border-blue-200 text-xs font-semibold bg-white text-blue-700">{s}</span>
                   ))}
                 </div>
               )}
 
               <div className="mt-2 text-sm text-blue-700">
-                {selectedDoctor.psychiatristInfo?.experience && (
-                  <div>Experience: {selectedDoctor.psychiatristInfo.experience}</div>
+                {selectedDoctor.psychiatristInfo?.experience !== undefined && (
+                  <div>Experience: {formatExperience(selectedDoctor.psychiatristInfo.experience)}</div>
                 )}
                 {selectedDoctor.psychiatristInfo?.certificate && (
                   <div>Certificate: {selectedDoctor.psychiatristInfo.certificate}</div>
@@ -403,9 +411,9 @@ export default function BookingForm({ staffId }: BookingFormProps) {
                     ].map((t) => {
                       const found = selectedDoctor.psychiatristInfo?.paket?.find(p => p.type === (t.type as any))
                       return (
-                        <div key={t.type} className="text-xs bg-white border px-2 py-1 rounded">
-                          <span className="font-medium">{t.label}</span>
-                          : Rp {formatRp(found?.price)}
+                        <div key={t.type} className="inline-flex items-center h-8 px-3 rounded-md border border-blue-200 text-xs font-semibold bg-white text-blue-700">
+                          <span className="font-medium mr-2">{t.label}</span>
+                          <span className="text-xs">Rp {formatRp(found?.price)}</span>
                         </div>
                       )
                     })}

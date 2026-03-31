@@ -70,6 +70,14 @@ const formatIDR = (value: number) =>
     maximumFractionDigits: 0,
   }).format(value);
 
+const formatExperience = (exp?: string | number) => {
+  if (exp === undefined || exp === null) return "";
+  const str = String(exp).trim();
+  if (!str) return "";
+  if (/tahun/i.test(str) || /year/i.test(str)) return str;
+  return `${str} Tahun`;
+};
+
 export default function PaymentCheckoutClient({
   amount,
   itemId,
@@ -413,9 +421,9 @@ export default function PaymentCheckoutClient({
                         <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">
                           Pengalaman
                         </p>
-                        <p className="mt-1 text-sm text-slate-800">
-                          {doctor.psychiatristInfo.experience}
-                        </p>
+                            <p className="mt-1 text-sm text-slate-800">
+                              {formatExperience(doctor.psychiatristInfo.experience)}
+                            </p>
                       </div>
                     )}
 
