@@ -41,7 +41,7 @@ export default function LoginForm() {
   return (
     <div className="flex items-center justify-center min-h-screen">
       <div className="bg-white shadow-lg rounded-2xl p-8 w-full max-w-md">
-        <h2 className="text-2xl font-bold text-gray-800 text-center">
+        <h2 className="text-2xl font-bold text-blue-800 text-center">
           Welcome Back
         </h2>
         <p className="text-gray-500 text-center mt-2">Login to your account</p>
@@ -71,7 +71,7 @@ export default function LoginForm() {
           </div>
           <button
             type="submit"
-            className="w-full bg-green-600 text-white py-2 rounded-lg font-semibold hover:bg-green-700 transition"
+            className="w-full bg-blue-600 text-white py-2 rounded-lg font-semibold hover:bg-blue-700 transition"
           >
             Login
           </button>
@@ -89,7 +89,7 @@ export default function LoginForm() {
           Don&apos;t have an account?{" "}
           <Link
             href="/register"
-            className="text-green-600 font-semibold hover:underline"
+            className="text-blue-600 font-semibold hover:text-blue-700"
           >
             Register
           </Link>

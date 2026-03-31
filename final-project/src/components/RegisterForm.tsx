@@ -68,7 +68,7 @@ export default function RegisterForm() {
   return (
     <div className="flex justify-center items-center min-h-screen bg-white">
       <div className="w-3/4 max-w-md p-8 bg-white shadow-lg rounded-lg">
-        <h2 className="text-2xl font-bold text-green-600 mb-6 text-center">
+        <h2 className="text-2xl font-bold text-blue-600 mb-6 text-center">
           Sign up
         </h2>
 
@@ -83,7 +83,7 @@ export default function RegisterForm() {
               name="name"
               required
               placeholder="Enter your name"
-              className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+              className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
               value={name}
               onChange={(e) => setName(e.target.value)}
             />
@@ -99,7 +99,7 @@ export default function RegisterForm() {
               name="email"
               required
               placeholder="Enter your email"
-              className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+              className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
             />
@@ -116,7 +116,7 @@ export default function RegisterForm() {
               required
               autoComplete="off"
               placeholder="Enter your password"
-              className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+              className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
             />
@@ -132,7 +132,7 @@ export default function RegisterForm() {
               name="phone"
               required
               placeholder="Enter your phone number"
-              className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+              className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
               value={phone}
               onChange={(e) => setPhone(e.target.value)}
             />
@@ -148,7 +148,7 @@ export default function RegisterForm() {
               name="address"
               required
               placeholder="Enter your full address"
-              className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+              className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
               value={address}
               onChange={(e) => setAddress(e.target.value)}
             />
@@ -156,7 +156,7 @@ export default function RegisterForm() {
 
           <button
             type="submit"
-            className="w-full bg-green-600 text-white py-2 rounded-lg hover:bg-green-700 transition duration-300 font-bold"
+            className="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 transition duration-300 font-bold"
           >
             Sign up
           </button>
@@ -165,7 +165,7 @@ export default function RegisterForm() {
           Already have account?{" "}
           <Link
             href="/login"
-            className="text-green-600 font-semibold hover:underline"
+            className="text-blue-900 font-semibold hover:underline"
           >
             Login
           </Link>
