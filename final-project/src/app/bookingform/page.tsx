@@ -38,8 +38,10 @@ export default async function BookPage({ searchParams }: BookPageProps) {
   }
 
   return (
-    <div>
-      <BookingForm staffId={doctorId} />
-    </div>
+    <main className="min-h-screen bg-[#f8f9ff] pt-20 pb-10">
+      <div className="max-w-2xl mx-auto px-4">
+        <BookingForm staffId={doctorId} />
+      </div>
+    </main>
   );
 }
