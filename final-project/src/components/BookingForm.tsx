@@ -231,6 +231,19 @@ export default function BookingForm({ staffId }: BookingFormProps) {
             ].map((time) => {
               const start = time.split(' - ')[0]
               const isBooked = bookedStarts.includes(start)
+
+              // check psychiatrist schedule: days and times
+              const scheduleDays = selectedDoctor?.psychiatristInfo?.scheduleDays || []
+              const scheduleTimes = selectedDoctor?.psychiatristInfo?.scheduleTimes || []
+
+              // derive weekday name from selectedDate (e.g. 'Monday')
+              const weekdayName = selectedDate ? new Date(selectedDate).toLocaleDateString('en-US', { weekday: 'long' }) : ''
+
+              const dayAllowed = !scheduleDays || scheduleDays.length === 0 || scheduleDays.includes(weekdayName)
+              const timeAllowed = !scheduleTimes || scheduleTimes.length === 0 || scheduleTimes.includes(start)
+
+              const isUnavailable = isBooked || !dayAllowed || !timeAllowed
+
               return (
                 <label key={time} className="relative group">
                   <input
@@ -240,23 +253,24 @@ export default function BookingForm({ staffId }: BookingFormProps) {
                     checked={selectedTime === time}
                     onChange={() => setSelectedTime(time)}
                     required
-                    disabled={isBooked}
+                    disabled={isUnavailable}
                     className="peer appearance-none absolute w-0 h-0 opacity-0"
                   />
                     <span
                       className={
                         `inline-flex w-full h-9 items-center justify-center rounded-lg border border-blue-500 font-semibold cursor-pointer transition-colors text-sm ` +
-                        (isBooked
+                        (isUnavailable
                           ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
                           : selectedTime === time
                           ? 'bg-blue-600 text-white shadow-lg'
                           : 'bg-white text-blue-600 hover:bg-blue-100')
                       }
+                      title={isUnavailable ? 'Unavailable' : ''}
                     >
                       <span className="text-center">{time}</span>
                     </span>
-                    {isBooked && (
-                      <span className="absolute -top-8 left-1/2 transform -translate-x-1/2 px-2 py-1 text-xs bg-gray-700 text-white rounded opacity-0 pointer-events-none transition-opacity group-hover:opacity-100">Booked</span>
+                    {isUnavailable && (
+                      <span className="absolute -top-8 left-1/2 transform -translate-x-1/2 px-2 py-1 text-xs bg-gray-700 text-white rounded opacity-0 pointer-events-none transition-opacity group-hover:opacity-100">Unavailable</span>
                     )}
                 </label>
               )
