@@ -167,7 +167,7 @@ export default function BookingForm({ staffId }: BookingFormProps) {
                 />
                 <span
                   className={
-                    `inline-block px-5 py-2 rounded-lg border border-blue-500 font-semibold cursor-pointer transition-colors text-base ` +
+                    `inline-block w-44 text-center px-3 py-2 rounded-lg border border-blue-500 font-semibold cursor-pointer transition-colors text-base ` +
                     (selectedTime === time
                       ? 'bg-blue-600 text-white shadow-lg'
                       : 'bg-white text-blue-600 hover:bg-blue-100')
@@ -210,7 +210,7 @@ export default function BookingForm({ staffId }: BookingFormProps) {
                   />
                   <span
                     className={
-                      `inline-block px-5 py-2 rounded-lg border border-orange-500 font-semibold cursor-pointer transition-colors text-base ` +
+                      `inline-block w-44 text-center px-3 py-2 rounded-lg border border-orange-500 font-semibold cursor-pointer transition-colors text-base ` +
                       (sessionType === option.value
                         ? 'bg-orange-500 text-white shadow-lg'
                         : 'bg-white text-orange-500 hover:bg-orange-100')

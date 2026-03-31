@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import Image from 'next/image'
+import Link from 'next/link'
 import Swal from 'sweetalert2'
 
 type PsychiatristInfo = {
@@ -15,6 +16,7 @@ type PsychiatristInfo = {
   roleSpecialist?: string
   scheduleDays?: string[]
   scheduleTimes?: string[]
+  paket?: { type: 'videocall' | 'chat-only' | 'offline'; price: number }[]
 }
 
 export default function ProfilePage () {
@@ -30,8 +32,6 @@ export default function ProfilePage () {
   const [address, setAddress] = useState('')
   const [psychiatristInfo, setPsychiatristInfo] = useState<PsychiatristInfo>({})
   const [newSpeciality, setNewSpeciality] = useState('')
-  const [newScheduleDay, setNewScheduleDay] = useState('')
-  const [newScheduleTime, setNewScheduleTime] = useState('')
   const [uploadingImage, setUploadingImage] = useState(false)
 
   useEffect(() => {
@@ -100,6 +100,9 @@ export default function ProfilePage () {
   return (
     <div className="max-w-3xl mx-auto p-6">
       <h1 className="text-2xl font-bold mb-4">Profile</h1>
+      <div className="mb-4">
+        <Link href="/" className="text-blue-600 hover:underline">← Back to home</Link>
+      </div>
       {error && <div className="p-3 bg-red-100 text-red-700 rounded mb-4">{error}</div>}
       {success && <div className="p-3 bg-green-100 text-green-700 rounded mb-4">{success}</div>}
 
@@ -156,6 +159,41 @@ export default function ProfilePage () {
               <input value={psychiatristInfo.mode || ''} onChange={e => setPsychiatristInfo(prev => ({ ...prev, mode: e.target.value }))} className="mt-1 block w-full p-2 border rounded" />
             </div>
             <div>
+              <label className="block text-sm font-medium text-gray-700">Packages / Prices</label>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 mt-1">
+                <div>
+                  <label className="block text-xs text-gray-600">Video Call (Rp)</label>
+                  <input type="number" value={(psychiatristInfo.paket?.find(p => p.type === 'videocall')?.price ?? '') as any} onChange={e => {
+                    const price = Number(e.target.value || 0)
+                    setPsychiatristInfo(prev => {
+                      const others = (prev.paket || []).filter(p => p.type !== 'videocall')
+                      return { ...prev, paket: [...others, { type: 'videocall', price }] }
+                    })
+                  }} className="mt-1 block w-full p-2 border rounded" />
+                </div>
+                <div>
+                  <label className="block text-xs text-gray-600">Chat Only (Rp)</label>
+                  <input type="number" value={(psychiatristInfo.paket?.find(p => p.type === 'chat-only')?.price ?? '') as any} onChange={e => {
+                    const price = Number(e.target.value || 0)
+                    setPsychiatristInfo(prev => {
+                      const others = (prev.paket || []).filter(p => p.type !== 'chat-only')
+                      return { ...prev, paket: [...others, { type: 'chat-only', price }] }
+                    })
+                  }} className="mt-1 block w-full p-2 border rounded" />
+                </div>
+                <div>
+                  <label className="block text-xs text-gray-600">Offline (Rp)</label>
+                  <input type="number" value={(psychiatristInfo.paket?.find(p => p.type === 'offline')?.price ?? '') as any} onChange={e => {
+                    const price = Number(e.target.value || 0)
+                    setPsychiatristInfo(prev => {
+                      const others = (prev.paket || []).filter(p => p.type !== 'offline')
+                      return { ...prev, paket: [...others, { type: 'offline', price }] }
+                    })
+                  }} className="mt-1 block w-full p-2 border rounded" />
+                </div>
+              </div>
+            </div>
+            <div>
               <label className="block text-sm font-medium text-gray-700">Specialities</label>
               <div className="flex items-center gap-2 mt-1">
                 <input
@@ -186,62 +224,73 @@ export default function ProfilePage () {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700">Schedule Days</label>
-              <div className="flex items-center gap-2 mt-1">
-                <input
-                  value={newScheduleDay}
-                  onChange={e => setNewScheduleDay(e.target.value)}
-                  onKeyDown={e => {
-                    if (e.key === 'Enter' || e.key === ',') {
-                      e.preventDefault()
-                      const val = newScheduleDay.trim()
-                      if (val) {
-                        setPsychiatristInfo(prev => ({ ...prev, scheduleDays: Array.from(new Set([...(prev.scheduleDays || []), val])) }))
-                        setNewScheduleDay('')
-                      }
-                    }
-                  }}
-                  placeholder="e.g. Monday"
-                  className="flex-1 p-2 border rounded"
-                />
-                <div className="flex flex-wrap gap-2">
-                  {(psychiatristInfo.scheduleDays || []).map((tag, i) => (
-                    <span key={i} className="px-2 py-1 bg-gray-200 rounded-full flex items-center gap-2">
-                      <span>{tag}</span>
-                      <button type="button" onClick={() => setPsychiatristInfo(prev => ({ ...prev, scheduleDays: (prev.scheduleDays || []).filter((_, idx) => idx !== i) }))} className="text-xs text-red-600">×</button>
-                    </span>
-                  ))}
-                </div>
+              <label className="block text-sm font-medium text-gray-700">Schedule Day</label>
+              <div className="mt-1 grid grid-cols-3 grid-rows-2 gap-3">
+                {['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'].map((day) => {
+                  const selected = (psychiatristInfo.scheduleDays || []).includes(day)
+                  return (
+                    <label key={day} className="relative">
+                      <input
+                        type="checkbox"
+                        className="peer appearance-none absolute w-0 h-0 opacity-0"
+                        checked={selected}
+                        onChange={() => {
+                          setPsychiatristInfo((prev) => {
+                            const arr = new Set(prev.scheduleDays || [])
+                            if (arr.has(day)) arr.delete(day)
+                            else arr.add(day)
+                            return { ...prev, scheduleDays: Array.from(arr) }
+                          })
+                        }}
+                      />
+                      <span
+                        className={
+                          `inline-block w-full text-center px-3 py-2 rounded-lg border border-blue-500 font-semibold cursor-pointer transition-colors text-base ` +
+                          (selected ? 'bg-blue-600 text-white shadow-lg' : 'bg-white text-blue-600 hover:bg-blue-100')
+                        }
+                      >
+                        {day}
+                      </span>
+                    </label>
+                  )
+                })}
               </div>
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700">Schedule Times</label>
-              <div className="flex items-center gap-2 mt-1">
-                <input
-                  value={newScheduleTime}
-                  onChange={e => setNewScheduleTime(e.target.value)}
-                  onKeyDown={e => {
-                    if (e.key === 'Enter' || e.key === ',') {
-                      e.preventDefault()
-                      const val = newScheduleTime.trim()
-                      if (val) {
-                        setPsychiatristInfo(prev => ({ ...prev, scheduleTimes: Array.from(new Set([...(prev.scheduleTimes || []), val])) }))
-                        setNewScheduleTime('')
-                      }
-                    }
-                  }}
-                  placeholder="e.g. 10:00-12:00"
-                  className="flex-1 p-2 border rounded"
-                />
-                <div className="flex flex-wrap gap-2">
-                  {(psychiatristInfo.scheduleTimes || []).map((tag, i) => (
-                    <span key={i} className="px-2 py-1 bg-gray-200 rounded-full flex items-center gap-2">
-                      <span>{tag}</span>
-                      <button type="button" onClick={() => setPsychiatristInfo(prev => ({ ...prev, scheduleTimes: (prev.scheduleTimes || []).filter((_, idx) => idx !== i) }))} className="text-xs text-red-600">×</button>
-                    </span>
-                  ))}
-                </div>
+              <label className="block text-sm font-medium text-gray-700">Schedule Time</label>
+              <div className="mt-1 grid grid-cols-4 grid-rows-2 gap-2">
+                {Array.from({ length: 8 }).map((_, idx) => {
+                  const hour = 9 + idx
+                  const value = `${hour.toString().padStart(2, '0')}:00`
+                  const display = `${value} - ${hour.toString().padStart(2, '0')}:50`
+                  const selected = (psychiatristInfo.scheduleTimes || []).includes(value)
+                  return (
+                    <label key={value} className="relative">
+                      <input
+                        type="checkbox"
+                        className="peer appearance-none absolute w-0 h-0 opacity-0"
+                        checked={selected}
+                        onChange={() => {
+                          setPsychiatristInfo((prev) => {
+                            const arr = new Set(prev.scheduleTimes || [])
+                            if (arr.has(value)) arr.delete(value)
+                            else arr.add(value)
+                            return { ...prev, scheduleTimes: Array.from(arr) }
+                          })
+                        }}
+                      />
+                      <span
+                        className={
+                          `inline-block w-full text-center px-3 py-2 rounded-lg border border-blue-500 font-semibold cursor-pointer transition-colors text-sm ` +
+                          (selected ? 'bg-blue-600 text-white shadow-lg' : 'bg-white text-blue-600 hover:bg-blue-100')
+                        }
+                      >
+                        {display}
+                      </span>
+                    </label>
+                  )
+                })}
               </div>
             </div>
 
