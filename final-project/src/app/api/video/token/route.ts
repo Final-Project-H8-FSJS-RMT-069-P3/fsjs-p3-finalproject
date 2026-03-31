@@ -193,11 +193,22 @@ export async function POST(req: Request) {
         );
       }
 
-      const booking = await bookings.findOne({ roomName: channelName });
+      // Try to find booking by roomName first, then by booking _id (for chat-only flow)
+      let booking = await bookings.findOne({ roomName: channelName });
+
+      if (!booking) {
+        try {
+          if (ObjectId.isValid(channelName)) {
+            booking = await bookings.findOne({ _id: new ObjectId(channelName) });
+          }
+        } catch (err) {
+          // ignore
+        }
+      }
 
       if (!booking) {
         return NextResponse.json(
-          { message: "Room tidak ditemukan" },
+          { message: "Room atau booking tidak ditemukan" },
           { status: 404 }
         );
       }
@@ -216,7 +227,7 @@ export async function POST(req: Request) {
 
       // Tandai booking sebagai selesai di UserBookings yang sudah ada
       await bookings.updateOne(
-        { roomName: channelName },
+        { _id: booking._id },
         {
           $set: {
             isDone: true,

@@ -113,6 +113,8 @@ function VideoCallContent() {
   
   // AMBIL CHANNEL DARI URL (localhost:3000/videocall?channel=ROOM_ID)
   const channelName = searchParams.get("channel") ?? "";
+  const mode = searchParams.get("mode") ?? "";
+  const isChatOnly = mode === "chat-only";
 
   const {
     connectionState, localVideoTrack, remoteVideoTrack,
@@ -234,8 +236,8 @@ function VideoCallContent() {
           <div className="flex items-center gap-3">
             <span className={`w-3 h-3 rounded-full ${isConnected ? "bg-emerald-500 animate-pulse" : "bg-gray-300"}`} />
             <div>
-              <p className="text-sm font-extrabold text-blue-900">Sesi Konsultasi</p>
-              <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">{isConnected ? "Aktif" : "Menghubungkan..."}</p>
+              <p className="text-sm font-extrabold text-blue-900">{isChatOnly ? "Chat Sesi" : "Sesi Konsultasi"}</p>
+              <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">{isConnected ? "Aktif" : isChatOnly ? "Chat aktif" : "Menghubungkan..."}</p>
             </div>
           </div>
           {isConnected && (
@@ -244,46 +246,59 @@ function VideoCallContent() {
         </header>
 
         {/* Main Area */}
-        <div className="flex-1 min-h-0 grid grid-cols-1 md:grid-cols-[1fr_350px] md:gap-4 md:p-4 bg-gray-50/50">
-          <div className="relative flex items-center justify-center overflow-hidden md:rounded-4xl bg-white border shadow-xl">
-            {isConnected ? (
-              <>
-                {remoteVideoTrack ? (
-                  <VideoTrack track={remoteVideoTrack} className="absolute inset-0 w-full h-full object-cover" />
-                ) : (
-                  <div className="flex flex-col items-center gap-4">
-                    <div className="w-24 h-24 rounded-full bg-blue-100 flex items-center justify-center text-3xl">👨‍⚕️</div>
-                    <WaveBars active={isRemoteSpeaking} />
+        {isChatOnly ? (
+          <div className="flex-1 min-h-0 flex items-center justify-center p-6 bg-gray-50/50">
+            <div className="w-full max-w-4xl h-[72vh] bg-white rounded-4xl border overflow-hidden shadow-xl">
+              <ChatPanel messages={messages} onSend={sendMessage} />
+            </div>
+          </div>
+        ) : (
+          <div className="flex-1 min-h-0 grid grid-cols-1 md:grid-cols-[1fr_350px] md:gap-4 md:p-4 bg-gray-50/50">
+            <div className="relative flex items-center justify-center overflow-hidden md:rounded-4xl bg-white border shadow-xl">
+              {isConnected ? (
+                <>
+                  {remoteVideoTrack ? (
+                    <VideoTrack track={remoteVideoTrack} className="absolute inset-0 w-full h-full object-cover" />
+                  ) : (
+                    <div className="flex flex-col items-center gap-4">
+                      <div className="w-24 h-24 rounded-full bg-blue-100 flex items-center justify-center text-3xl">👨‍⚕️</div>
+                      <WaveBars active={isRemoteSpeaking} />
+                    </div>
+                  )}
+                  <div className="absolute top-4 right-4 w-28 h-36 rounded-2xl overflow-hidden border-2 border-white shadow-lg bg-gray-100">
+                    {isCamOn && localVideoTrack ? <VideoTrack track={localVideoTrack} className="w-full h-full object-cover" /> : <div className="h-full flex items-center justify-center text-[10px] font-bold text-gray-400">Cam Off</div>}
                   </div>
-                )}
-                <div className="absolute top-4 right-4 w-28 h-36 rounded-2xl overflow-hidden border-2 border-white shadow-lg bg-gray-100">
-                  {isCamOn && localVideoTrack ? <VideoTrack track={localVideoTrack} className="w-full h-full object-cover" /> : <div className="h-full flex items-center justify-center text-[10px] font-bold text-gray-400">Cam Off</div>}
-                </div>
-              </>
-            ) : (
-              <button onClick={join} className="px-8 py-3 bg-blue-600 text-white font-bold rounded-full shadow-lg hover:scale-105 transition-all">Bergabung Sekarang</button>
-            )}
-          </div>
+                </>
+              ) : (
+                <button onClick={join} className="px-8 py-3 bg-blue-600 text-white font-bold rounded-full shadow-lg hover:scale-105 transition-all">Bergabung Sekarang</button>
+              )}
+            </div>
 
-          {/* Desktop Sidebar */}
-          <div className="hidden md:flex flex-col bg-white rounded-4xl border overflow-hidden shadow-xl">
-            <div className="flex p-2 bg-gray-50 border-b gap-1">
-              {["chat", "notes"].map((t) => (
-                <button key={t} onClick={() => setActiveTab(t as Tab)} className={`flex-1 py-2 text-[11px] font-bold rounded-full uppercase ${activeTab === t ? "bg-white text-blue-600 shadow-sm" : "text-gray-400"}`}>
-                  {t === "chat" ? "💬 Chat" : "📋 Catatan"}
-                </button>
-              ))}
-            </div>
-            <div className="flex-1 overflow-hidden">
-              {activeTab === "chat" ? <ChatPanel messages={messages} onSend={sendMessage} /> : <div className="p-6 space-y-4">{NOTES.map((n, i) => <div key={i} className="text-sm text-gray-600 flex gap-2"><span className="w-1.5 h-1.5 rounded-full bg-blue-400 mt-1.5 shrink-0" />{n}</div>)}</div>}
+            {/* Desktop Sidebar */}
+            <div className="hidden md:flex flex-col bg-white rounded-4xl border overflow-hidden shadow-xl">
+              <div className="flex p-2 bg-gray-50 border-b gap-1">
+                {['chat', 'notes'].map((t) => (
+                  <button key={t} onClick={() => setActiveTab(t as Tab)} className={`flex-1 py-2 text-[11px] font-bold rounded-full uppercase ${activeTab === t ? "bg-white text-blue-600 shadow-sm" : "text-gray-400"}`}>
+                    {t === "chat" ? "💬 Chat" : "📋 Catatan"}
+                  </button>
+                ))}
+              </div>
+              <div className="flex-1 overflow-hidden">
+                {activeTab === "chat" ? <ChatPanel messages={messages} onSend={sendMessage} /> : <div className="p-6 space-y-4">{NOTES.map((n, i) => <div key={i} className="text-sm text-gray-600 flex gap-2"><span className="w-1.5 h-1.5 rounded-full bg-blue-400 mt-1.5 shrink-0" />{n}</div>)}</div>}
+              </div>
             </div>
           </div>
-        </div>
+        )}
 
         {/* Controls */}
         <div className="flex items-center justify-center gap-6 py-5 bg-white border-t shrink-0 z-30">
-          <CtrlBtn icon={isMicOn ? "🎙️" : "🔇"} label="Mic" muted={!isMicOn} onClick={toggleMic} />
-          <CtrlBtn icon={isCamOn ? "📹" : "🚫"} label="Kamera" active={isCamOn} onClick={toggleCam} />
+          {!isChatOnly && (
+            <>
+              <CtrlBtn icon={isMicOn ? "🎙️" : "🔇"} label="Mic" muted={!isMicOn} onClick={toggleMic} />
+              <CtrlBtn icon={isCamOn ? "📹" : "🚫"} label="Kamera" active={isCamOn} onClick={toggleCam} />
+            </>
+          )}
+
           <CtrlBtn icon="📵" label="Akhiri" danger big onClick={() => confirm("Akhiri sesi?") && leave()} />
           <div className="md:hidden"><CtrlBtn icon="💬" label="Chat" onClick={() => setMobChatOpen(true)} /></div>
         </div>
