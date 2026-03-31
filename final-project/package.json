@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@google/generative-ai": "^0.24.1",
+    "@react-email/render": "^2.0.4",
     "@types/bcryptjs": "^2.4.6",
     "@types/jsonwebtoken": "^9.0.10",
     "agora-rtc-sdk-ng": "^4.24.3",
@@ -22,6 +23,7 @@
     "lucide-react": "^1.7.0",
     "midtrans-client": "^1.4.3",
     "mongodb": "^7.1.0",
+    "mongoose": "^9.3.3",
     "nanoid": "^5.1.7",
     "next": "16.1.7",
     "next-auth": "^5.0.0-beta.30",
@@ -30,11 +32,13 @@
     "react": "19.2.3",
     "react-dom": "19.2.3",
     "react-markdown": "^10.1.0",
+    "resend": "^6.9.4",
     "sweetalert2": "^11.26.24",
     "zod": "^4.3.6"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
+    "@types/mongoose": "^5.11.96",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",

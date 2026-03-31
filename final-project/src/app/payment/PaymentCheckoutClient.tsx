@@ -70,6 +70,14 @@ const formatIDR = (value: number) =>
     maximumFractionDigits: 0,
   }).format(value);
 
+const formatExperience = (exp?: string | number) => {
+  if (exp === undefined || exp === null) return "";
+  const str = String(exp).trim();
+  if (!str) return "";
+  if (/tahun/i.test(str) || /year/i.test(str)) return str;
+  return `${str} Tahun`;
+};
+
 export default function PaymentCheckoutClient({
   amount,
   itemId,
@@ -84,6 +92,7 @@ export default function PaymentCheckoutClient({
 
   const [doctor, setDoctor] = useState<Doctor | null>(null);
   const [loadingDoctor, setLoadingDoctor] = useState(!!drName); // fetch hanya kalau drName ada
+  const [bookingInfo, setBookingInfo] = useState<null | { amount: number; type?: string; staffName?: string }>(null);
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -92,11 +101,13 @@ export default function PaymentCheckoutClient({
     () => ({
       orderId,
       bookingId,
-      grossAmount: amount,
-      items: [{ id: itemId, price: amount, quantity: 1, name: itemName }],
+      grossAmount: bookingInfo?.amount ?? amount,
+      items: [
+        { id: itemId, price: bookingInfo?.amount ?? amount, quantity: 1, name: bookingInfo?.type ? `${itemName} (${bookingInfo.type})` : itemName },
+      ],
       customerDetails: { first_name: firstName, email },
     }),
-    [amount, bookingId, email, firstName, itemId, itemName, orderId]
+    [amount, bookingId, email, firstName, itemId, itemName, orderId, bookingInfo]
   );
 
   // Fetch user profile
@@ -152,6 +163,26 @@ export default function PaymentCheckoutClient({
       isMounted = false;
     };
   }, [drName]);
+
+  // If bookingId provided, fetch booking details and override amount/drName
+  useEffect(() => {
+    if (!bookingId) return;
+    let isMounted = true;
+    const fetchBooking = async () => {
+      try {
+        const res = await fetch(`/api/getbookings?bookingId=${bookingId}`, { cache: "no-store" });
+        const json = await res.json();
+        if (!res.ok) throw new Error(json.message || "Failed to fetch booking");
+        if (!isMounted) return;
+        const d = json.data;
+        setBookingInfo({ amount: Number(d.amount || 0), type: d.type, staffName: d.staffName });
+      } catch (err) {
+        if (isMounted) setError(err instanceof Error ? err.message : "Unknown error");
+      }
+    };
+    fetchBooking();
+    return () => { isMounted = false };
+  }, [bookingId]);
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -216,7 +247,7 @@ export default function PaymentCheckoutClient({
                     Psikolog
                   </label>
                   <div className="w-full rounded-lg border border-slate-200 bg-slate-100 px-3 py-2 text-sm text-slate-700">
-                    {drName}
+                    {bookingInfo?.staffName ?? drName}
                   </div>
                 </div>
               )}
@@ -255,8 +286,17 @@ export default function PaymentCheckoutClient({
                     Amount (IDR)
                   </label>
                   <div className="w-full rounded-lg border border-slate-200 bg-blue-50 px-3 py-2 text-sm font-bold text-blue-900">
-                    {formatIDR(amount)}
+                    {formatIDR(bookingInfo?.amount ?? amount)}
                   </div>
+
+                  {bookingInfo?.type && (
+                    <div className="mt-2">
+                      <label className="mb-1 block text-sm font-semibold text-slate-700">Session Type</label>
+                      <div className="w-full rounded-lg border border-slate-200 bg-slate-100 px-3 py-2 text-sm text-slate-700">
+                        {bookingInfo.type}
+                      </div>
+                    </div>
+                  )}
                 </div>
 
                 <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
@@ -381,9 +421,9 @@ export default function PaymentCheckoutClient({
                         <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">
                           Pengalaman
                         </p>
-                        <p className="mt-1 text-sm text-slate-800">
-                          {doctor.psychiatristInfo.experience}
-                        </p>
+                            <p className="mt-1 text-sm text-slate-800">
+                              {formatExperience(doctor.psychiatristInfo.experience)}
+                            </p>
                       </div>
                     )}
 
@@ -395,18 +435,6 @@ export default function PaymentCheckoutClient({
                         </p>
                         <p className="mt-1 text-sm text-slate-800">
                           {doctor.psychiatristInfo.schedule}
-                        </p>
-                      </div>
-                    )}
-
-                    {/* Tarif */}
-                    {doctor.psychiatristInfo?.price !== undefined && (
-                      <div className="rounded-lg border border-blue-200 bg-blue-50 px-4 py-3">
-                        <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">
-                          Tarif Konsultasi
-                        </p>
-                        <p className="mt-1 text-sm font-bold text-blue-900">
-                          {formatIDR(doctor.psychiatristInfo.price)}
                         </p>
                       </div>
                     )}

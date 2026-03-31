@@ -149,6 +149,7 @@ type ApiDoctor = {
     experience?: number;
     scheduleDays?: string[];
     scheduleTimes?: string[];
+    speciality?: string[];
   };
 };
 
@@ -192,6 +193,10 @@ function toDoctorCard(doctor: ApiDoctor, index: number): DoctorCard {
   const fallbackTags = FALLBACK_TAGS[index % FALLBACK_TAGS.length];
   const experience = doctor.psychiatristInfo?.experience;
 
+  const specialties = doctor.psychiatristInfo?.speciality ?? [];
+  const tags = specialties.length > 0 ? specialties : fallbackTags;
+  const modeLabel = specialties.length > 0 ? specialties.slice(0, 2).join(", ") : "Online & Offline";
+
   return {
     doctorId: doctor._id,
     name: doctor.name,
@@ -199,9 +204,9 @@ function toDoctorCard(doctor: ApiDoctor, index: number): DoctorCard {
     harga: 350000 + (index % 4) * 25000,
     rating: 4.7 + (index % 3) * 0.1,
     reviews: 50 + index * 7,
-    tags: fallbackTags,
+    tags: tags,
     img: FALLBACK_IMAGES[index % FALLBACK_IMAGES.length],
-    mode: "Online & Offline",
+    mode: modeLabel,
     exp: `${experience ?? 5} Tahun`,
     online: true,
     about:

@@ -10,27 +10,78 @@ const openRouterApiKey = process.env.OPENROUTER_API_KEY;
 if (!GeminiApiKey) throw new Error("Gemini API Key missing");
 const genAI = new GoogleGenerativeAI(GeminiApiKey as string);
 
-const geminiModel = [
-  "gemini-2.5-flash-lite",
-  "gemini-1.5-flash",
-];
+const geminiModel = ["gemini-2.5-flash-lite", "gemini-1.5-flash"];
 
 const OpenRouterModel = [
-"arcee-ai/trinity-large-preview:free",
-"openai/gpt-oss-20b:free",
-"nvidia/nemotron-3-super-120b-a12b:free",
+  "arcee-ai/trinity-large-preview:free",
+  "openai/gpt-oss-20b:free",
+  "nvidia/nemotron-3-super-120b-a12b:free",
   "liquid/lfm-2.5-1.2b-thinking:free",
 ];
 
 const ChatPrompt = `
-        Kamu adalah asisten ahli psikologi dari aplikasi Pendengarmu. 
-        Tugasmu:
-        1. Hanya menjawab pertanyaan seputar kesehatan mental, psikologi, emosi, dan kesejahteraan diri.
-        2. Jika pertanyaan di luar topik psikologi (seperti koding, politik, matematika, dll), jawab tepat dengan kalimat: "Mohon maaf, itu di luar kapasitas saya sebagai asisten psikologi."
-        3. Berikan jawaban yang SINGKAT, padat, dan menenangkan (maksimal 2-10 kalimat).
-        4. Jangan pernah memberikan saran medis atau psikologis yang spesifik, selalu arahkan untuk konsultasi dengan profesional yang dimiliki jika diperlukan.
-        5. Tawarkan di setiap akhir jawaban agar dibantu terhubung dengan psikolog setelah menjawab pertanyaan dari pengguna. Jika pengguna setuju, jawab dengan: "Baik, saya akan membantu menghubungkan Anda dengan psikolog kami. Silakan tunggu sebentar."
-      `;
+                      Kamu adalah AI pendengar yang hangat, empatik, dan profesional dari aplikasi PendengarMu.
+
+                      TUJUAN UTAMA:
+                      - Menjadi ruang aman bagi pengguna untuk bercerita
+                      - Membantu pengguna memahami emosi mereka dengan lebih dalam
+                      - Memberikan refleksi yang terasa personal, bukan template
+
+                      PRINSIP UTAMA:
+                      1. Fokus hanya pada psikologi, emosi, dan kesehatan mental
+                      2. Jika di luar topik, jawab dengan halus:
+                        "Maaf ya, aku hanya bisa membantu terkait perasaan dan kesehatan mental 🤍"
+                      3. Gunakan bahasa:
+                        - natural, seperti manusia
+                        - hangat, tidak kaku
+                        - tidak terlalu formal
+                      4. Panjang jawaban: 2–5 kalimat (ringkas tapi bermakna)
+
+                      STRATEGI RESPON:
+                      Selalu lakukan ini secara berurutan:
+                      1. Empati → tangkap perasaan utama pengguna
+                      2. Validasi → tunjukkan bahwa perasaan itu masuk akal
+                      3. Refleksi → bantu pengguna melihat perspektif baru (tanpa menggurui)
+                      4. (opsional) Pertanyaan terbuka → hanya jika benar-benar membantu
+
+                      ATURAN PENTING:
+                      - Jangan selalu bertanya (maksimal 1 pertanyaan, dan tidak di setiap respon)
+                      - Variasikan gaya bahasa (hindari repetisi kalimat yang sama)
+                      - Gunakan kata-kata yang terasa personal (misal: “kayaknya”, “kedengarannya”)
+                      - Jangan memberi solusi instan
+                      - Jangan terdengar seperti buku atau robot
+
+                      PENINGKATAN KUALITAS (WAJIB):
+                      - Hubungkan dengan konteks sebelumnya (history)
+                      - Tangkap emosi tersembunyi (bukan hanya yang eksplisit)
+                      - Gunakan refleksi mendalam, contoh:
+                        ❌ "Kamu sedih ya"
+                        ✅ "Kayaknya ada rasa capek dan mungkin juga kecewa yang numpuk ya"
+
+                      - Jika user bingung → bantu klarifikasi perasaan
+                      - Jika user overthinking → bantu grounding secara halus
+                      - Jika user self-blame → bantu reframe dengan lembut
+
+                      HINDARI:
+                      - menghakimi
+                      - terlalu generik ("tetap semangat ya")
+                      - terlalu panjang
+                      - terlalu teknis
+                      - terlalu cepat memberi solusi
+
+                      CONTOH GAYA YANG BAIK:
+                      "Aku bisa ngerti kenapa ini terasa berat buat kamu. Kedengarannya bukan cuma capek secara fisik, tapi juga emosinya ikut terkuras. Kadang saat semuanya datang barengan, rasanya jadi penuh banget ya di kepala."
+
+                      "Kayaknya ada bagian dari kamu yang pengen dimengerti, tapi di saat yang sama juga capek untuk terus menjelaskan ke orang lain."
+
+                      GAYA PERSONAL:
+                      - terasa seperti teman yang benar-benar mendengarkan
+                      - tidak kaku
+                      - tidak berulang-ulang
+                      - lebih banyak refleksi daripada pertanyaan
+
+                      Selalu hadir sebagai pendengar yang tenang, hangat, dan manusiawi.
+                      `;
 const analyzePrompt = `Kamu adalah AI clinical assistant yang membantu psikolog profesional dalam melakukan asesmen awal klien.
 
                                 PENTING:
@@ -110,13 +161,22 @@ const analyzePrompt = `Kamu adalah AI clinical assistant yang membantu psikolog 
                                 
                                 `;
 
-const maxHistory= 10;   
+const maxHistory = 10;
 function limitHistory(history: Content[]) {
- if(!history) return [];
+  if (!history) return [];
   return history.slice(-maxHistory);
-  }
-                                
-async function callGeminiAPI(message: string,systemPrompt: string, history?: Content[]) {
+}
+function countAIResponses(history?: Content[]) {
+  if (!history) return 0;
+
+  return history.filter((m) => m.role === "model").length;
+}
+
+async function callGeminiAPI(
+  message: string,
+  systemPrompt: string,
+  history?: Content[],
+) {
   for (const modelName of geminiModel) {
     try {
       const model = genAI.getGenerativeModel({
@@ -142,18 +202,23 @@ async function callGeminiAPI(message: string,systemPrompt: string, history?: Con
   }
   throw Error("Semua model Gemini gagal merespons.");
 }
-function normalizeOpenRouterHistory(history: Content[] ) {
+function normalizeOpenRouterHistory(history: Content[]) {
   if (!history) return [];
   return history.map((item) => ({
-    role: item.role==="model" ? "assistant" : item.role, 
+    role: item.role === "model" ? "assistant" : item.role,
     content: item.parts?.[0]?.text || "",
-    
   }));
 }
-async function callOpenRouterAPI(message: string, systemPrompt: string, history?: Content[]) {
+async function callOpenRouterAPI(
+  message: string,
+  systemPrompt: string,
+  history?: Content[],
+) {
   for (const modelName of OpenRouterModel) {
     try {
-       const normalizedHistory = normalizeOpenRouterHistory(limitHistory(history || []));
+      const normalizedHistory = normalizeOpenRouterHistory(
+        limitHistory(history || []),
+      );
       const response = await fetch(
         "https://openrouter.ai/api/v1/chat/completions",
         {
@@ -209,9 +274,9 @@ export async function POST(req: NextRequest) {
       form,
     }: { message: string; history?: Content[]; type: string; form?: any } =
       body;
+    const aiResponseCount = countAIResponses(history);
 
     if (type === "analyze") {
-      
       try {
         const result = await callGeminiAPI(JSON.stringify(form), analyzePrompt);
         await FormBrief.create({
@@ -221,9 +286,12 @@ export async function POST(req: NextRequest) {
           result: result,
           createdAt: new Date(),
         });
-        return NextResponse.json({ response: result, });
-      } catch  {
-        const result = await callOpenRouterAPI(JSON.stringify(form), analyzePrompt);
+        return NextResponse.json({ response: result });
+      } catch {
+        const result = await callOpenRouterAPI(
+          JSON.stringify(form),
+          analyzePrompt,
+        );
         await FormBrief.create({
           _id: new ObjectId(),
           userId: new ObjectId(userId),
@@ -231,7 +299,7 @@ export async function POST(req: NextRequest) {
           result: result,
           createdAt: new Date(),
         });
-        return NextResponse.json({ response: result }); 
+        return NextResponse.json({ response: result });
       }
     }
     if (!message) {
@@ -240,18 +308,58 @@ export async function POST(req: NextRequest) {
         { status: 400 },
       );
     }
+    const agreeKeywords = [
+      "bersedia",
+      "iya",
+      "ya",
+      "mau",
+      "boleh",
+      "ok",
+      "oke",
+    ];
+
+    const isAgree = agreeKeywords.some((k) =>
+      message.toLowerCase().includes(k),
+    );
+
+    if (isAgree && aiResponseCount >= 4) {
+      return NextResponse.json({
+        response: "Baik, aku bantu arahkan kamu ke psikolog ya",
+        redirectToBooking: true,
+      });
+    }
+
+    if (aiResponseCount >= 4) {
+      return NextResponse.json({
+        response:
+          "Terima kasih sudah berbagi. Sepertinya kita hanya bisa membahas ini sampai sini, untuk lebih lanjut kamu bisa ngobrol langsung dengan psikolog profesional biar lebih dalam dan personal. Apakah kamu bersedia untuk lanjut ke sana?",
+        askForBooking: true,
+      });
+    }
     try {
       const result = await callGeminiAPI(message, ChatPrompt, history);
-      return NextResponse.json({ 
-        response: result,
-        history: [...(history || []), { role: "user", content: message }, { role: "model", content: result }],
-       });
+      let finalResult=result;
+      if(aiResponseCount===3){
+        finalResult+="\n\n✨ Untuk melanjutkan lebih dalam dan personal, kamu bisa ngobrol langsung dengan psikolog profesional. Kamu bersedia?";
+      }
+      return NextResponse.json({
+        response: finalResult,
+        history: [
+          ...(history || []),
+          { role: "user", parts: [{ text: message }] },
+          { role: "model", parts: [{ text: finalResult }] },
+        ],
+      });
     } catch (error) {
       console.error("(Gemini gagal, fallback ke OpenRouter)");
     }
     try {
-      const result = await callOpenRouterAPI(message, ChatPrompt  , history);
-      return NextResponse.json({ response: result });
+      const result = await callOpenRouterAPI(message, ChatPrompt, history);
+      let finalResult=result;
+      if(aiResponseCount===3){
+        finalResult+="\n\nUntuk melanjutkan lebih dalam dan personal, kamu bisa ngobrol langsung dengan psikolog profesional. Kamu bersedia?";
+      }
+      return NextResponse.json({ response: finalResult });
     } catch (error) {
       console.error("OpenRouter API error:");
     }
@@ -262,6 +370,5 @@ export async function POST(req: NextRequest) {
       { error: "Terjadi kesalahan pada server" },
       { status: 500 },
     );
-
   }
 }
