@@ -393,12 +393,19 @@ export default function BookingForm({ staffId }: BookingFormProps) {
                 <div className="mt-3 text-sm">
                   <div className="font-semibold text-blue-900">Paket</div>
                   <div className="flex gap-2 mt-1 flex-wrap">
-                    {selectedDoctor.psychiatristInfo.paket.map((p) => (
-                      <div key={p.type} className="text-xs bg-white border px-2 py-1 rounded">
-                        <span className="font-medium">{p.type === 'videocall' ? 'Video' : p.type === 'chat-only' ? 'Chat' : 'Offline'}</span>
-                        : Rp {formatRp(p.price)}
-                      </div>
-                    ))}
+                    {[
+                      { type: 'chat-only', label: 'Chat' },
+                      { type: 'videocall', label: 'Video' },
+                      { type: 'offline', label: 'Offline' },
+                    ].map((t) => {
+                      const found = selectedDoctor.psychiatristInfo?.paket?.find(p => p.type === (t.type as any))
+                      return (
+                        <div key={t.type} className="text-xs bg-white border px-2 py-1 rounded">
+                          <span className="font-medium">{t.label}</span>
+                          : Rp {formatRp(found?.price)}
+                        </div>
+                      )
+                    })}
                   </div>
                 </div>
               )}
