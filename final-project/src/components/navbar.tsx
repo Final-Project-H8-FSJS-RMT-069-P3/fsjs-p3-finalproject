@@ -83,8 +83,10 @@ export default function Navbar() {
   const [menuOpen, setMenuOpen] = useState(false);
   const { data: session } = useSession();
   const router = useRouter();
+
   const qnaHref = session ? "/qna" : "/login";
   const sessionRole = String(session?.user?.role || "").toLowerCase();
+
   const isPsychiatrist =
     sessionRole === "doctor" || sessionRole === "psychiatrist";
   const isUser = sessionRole === "user";
@@ -100,11 +102,12 @@ export default function Navbar() {
     <nav className="fixed top-0 w-full z-50 bg-white/80 backdrop-blur-md shadow-sm">
       <div className="flex justify-between items-center px-6 py-4 max-w-7xl mx-auto">
         <div className="text-2xl font-black text-blue-900 tracking-tighter">
-          <Link key="home" href="/" className="">
+          <Link href="/" className="">
             {brandTitle}
           </Link>
         </div>
 
+        {/* Desktop Links */}
         <div className="hidden md:flex items-center space-x-8 text-sm font-medium">
           <Link
             href="/"
@@ -124,6 +127,12 @@ export default function Navbar() {
           >
             Tentang kami
           </Link>
+          <Link
+            href="/bookinglist"
+            className="text-gray-500 hover:text-blue-700 transition-colors"
+          >
+            List Booking
+          </Link>
         </div>
 
         <div className="flex items-center gap-3">
@@ -134,7 +143,7 @@ export default function Navbar() {
             Konseling Sekarang
           </Link>
 
-          {/* mobile menu toggle */}
+          {/* mobile menu toggle (Hamburger) */}
           <button
             className="md:hidden flex flex-col gap-1.5 p-1"
             onClick={() => setMenuOpen(!menuOpen)}
@@ -145,13 +154,15 @@ export default function Navbar() {
             <span className="block w-5 h-0.5 bg-gray-700 rounded" />
           </button>
 
-          {/* desktop burger/profile menu */}
+          {/* Profile Menu - Hidden on Mobile, Visible on Desktop */}
           {session ? (
-            <BurgerMenuDesktop
-              handleLogout={handleLogout}
-              isUser={isUser}
-              userId={userId}
-            />
+            <div className="hidden md:block">
+              <BurgerMenuDesktop
+                handleLogout={handleLogout}
+                isUser={isUser}
+                userId={userId}
+              />
+            </div>
           ) : (
             <Link
               href="/login"
@@ -163,53 +174,65 @@ export default function Navbar() {
         </div>
       </div>
 
-      {/* mobile dropdown */}
+      {/* mobile dropdown menu */}
       {menuOpen && (
         <div className="md:hidden bg-white border-t border-gray-100 px-6 py-4 shadow-lg">
           <Link
             href="/"
             className="block py-3 text-sm font-medium text-gray-600 border-b border-gray-50"
+            onClick={() => setMenuOpen(false)}
           >
             Home
           </Link>
           <Link
             href="/listpsikolog"
             className="block py-3 text-sm font-medium text-gray-600 border-b border-gray-50"
+            onClick={() => setMenuOpen(false)}
           >
             List Psikolog
           </Link>
           <Link
             href="/aboutus"
             className="block py-3 text-sm font-medium text-gray-600 border-b border-gray-50"
+            onClick={() => setMenuOpen(false)}
           >
             Tentang kami
           </Link>
+
           {session && (
             <Link
               href="/bookinglist"
               className="block py-3 text-sm font-medium text-gray-600 border-b border-gray-50"
+              onClick={() => setMenuOpen(false)}
             >
               List Booking
             </Link>
           )}
+
           {session && isUser && userId && (
             <Link
               href={`/formbrief/${userId}`}
               className="block py-3 text-sm font-medium text-gray-600 border-b border-gray-50"
+              onClick={() => setMenuOpen(false)}
             >
               Form Brief
             </Link>
           )}
+
           {session ? (
             <>
               <Link
                 href="/profile"
                 className="block py-3 text-sm font-medium text-blue-600 border-b border-gray-50"
+                onClick={() => setMenuOpen(false)}
               >
                 Profile
               </Link>
               <button
-                onClick={handleLogout}
+                onClick={() => {
+                  setMenuOpen(false);
+                  handleLogout();
+                }}
                 className="cursor-pointer block w-full text-left py-3 text-sm font-medium text-red-600 border-b border-gray-50"
               >
                 Logout
@@ -219,6 +242,7 @@ export default function Navbar() {
             <Link
               href="/login"
               className="cursor-pointer block py-3 text-sm font-medium text-gray-600 border-b border-gray-50"
+              onClick={() => setMenuOpen(false)}
             >
               Masuk / Daftar
             </Link>
@@ -227,6 +251,7 @@ export default function Navbar() {
           <Link
             href={qnaHref}
             className="cursor-pointer mt-4 block w-full py-3 bg-orange-500 text-white font-bold rounded-xl text-center"
+            onClick={() => setMenuOpen(false)}
           >
             Konseling Sekarang
           </Link>

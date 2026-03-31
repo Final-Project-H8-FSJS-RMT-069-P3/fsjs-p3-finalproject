@@ -31,7 +31,6 @@ type BookingApiResponse = {
 const formatDateTime = (value: string) => {
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return "Invalid date";
-
   return date.toLocaleString("id-ID", {
     dateStyle: "medium",
     timeStyle: "short",
@@ -66,51 +65,42 @@ export default function BookingListPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Search & filter state (added)
   const [searchQuery, setSearchQuery] = useState("");
   const [paymentFilter, setPaymentFilter] = useState<"ALL" | "PAID" | "UNPAID">(
-    "ALL",
+    "ALL"
   );
   const [statusFilter, setStatusFilter] = useState<"ALL" | "DONE" | "UPCOMING">(
-    "ALL",
+    "ALL"
   );
 
   const router = useRouter();
-
   const sessionRole = String(session?.user?.role || "").toLowerCase();
   const isPsychiatrist =
     sessionRole === "doctor" || sessionRole === "psychiatrist";
-
-  // only treat these metrics for doctors
   const isDoctor = role === "DOCTOR";
 
   useEffect(() => {
     let isMounted = true;
-
     const fetchBookings = async () => {
       try {
         const response = await fetch("/api/getbookings", { cache: "no-store" });
         const payload = (await response.json()) as BookingApiResponse;
-
-        if (!response.ok) {
+        if (!response.ok)
           throw new Error(payload.message || "Failed to fetch bookings");
-        }
-
         if (isMounted) {
           setBookings(payload.data || []);
           setRole(payload.role || null);
         }
       } catch (err: unknown) {
         if (isMounted) {
-          const message =
-            err instanceof Error ? err.message : "Unexpected error happened";
-          setError(message);
+          setError(
+            err instanceof Error ? err.message : "Unexpected error happened"
+          );
         }
       } finally {
         if (isMounted) setLoading(false);
       }
     };
-
     fetchBookings();
     return () => {
       isMounted = false;
@@ -123,40 +113,29 @@ export default function BookingListPage() {
 
   const totalIncome = useMemo(() => {
     if (!isDoctor) return 0;
-    return bookings.reduce((acc, booking) => {
-      return acc + (booking.isPaid ? booking.amount : 0);
-    }, 0);
+    return bookings.reduce((acc, b) => acc + (b.isPaid ? b.amount : 0), 0);
   }, [bookings, isDoctor]);
 
   const totalPatientsServed = useMemo(() => {
     if (!isDoctor) return 0;
-    return bookings.reduce((acc, booking) => {
-      return acc + (booking.isDone ? 1 : 0);
-    }, 0);
+    return bookings.reduce((acc, b) => acc + (b.isDone ? 1 : 0), 0);
   }, [bookings, isDoctor]);
 
-  // helper to determine which name to search/show based on role
   const getDisplayName = (booking: Booking) => {
     if (role === "DOCTOR") return booking.userName || "";
     if (role === "USER") return booking.staffName || "";
-    // fallback: search both if role not determined yet
     return `${booking.userName || ""} ${booking.staffName || ""}`.trim();
   };
 
-  // filtered bookings based on search and filters
   const filteredBookings = useMemo(() => {
     const q = searchQuery.trim().toLowerCase();
     return bookings.filter((b) => {
       const name = getDisplayName(b).toLowerCase();
-
       if (q && !name.includes(q)) return false;
-
       if (paymentFilter === "PAID" && !b.isPaid) return false;
       if (paymentFilter === "UNPAID" && b.isPaid) return false;
-
       if (statusFilter === "DONE" && !b.isDone) return false;
       if (statusFilter === "UPCOMING" && b.isDone) return false;
-
       return true;
     });
   }, [bookings, searchQuery, paymentFilter, statusFilter, role]);
@@ -174,7 +153,6 @@ export default function BookingListPage() {
               {pageTitle}
             </h1>
 
-            {/* Overview Section — shown only to doctors */}
             {isDoctor && (
               <div className="mt-4 flex gap-8">
                 <div>
@@ -192,7 +170,6 @@ export default function BookingListPage() {
               </div>
             )}
 
-            {/* Search & Filters (visible for both roles) */}
             <div className="mt-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
               <div className="flex-1">
                 <input
@@ -204,77 +181,53 @@ export default function BookingListPage() {
                   aria-label="Search nama"
                 />
               </div>
-
               <div className="flex items-center gap-4">
                 <div className="flex items-center gap-2">
                   <span className="text-xs text-slate-500">Payment</span>
                   <div className="flex gap-2">
-                    <button
-                      onClick={() => setPaymentFilter("ALL")}
-                      className={`text-xs px-2 py-1 rounded ${
-                        paymentFilter === "ALL"
-                          ? "bg-blue-600 text-white"
-                          : "bg-slate-100"
-                      }`}
-                    >
-                      All
-                    </button>
-                    <button
-                      onClick={() => setPaymentFilter("PAID")}
-                      className={`text-xs px-2 py-1 rounded ${
-                        paymentFilter === "PAID"
-                          ? "bg-green-600 text-white"
-                          : "bg-slate-100"
-                      }`}
-                    >
-                      Paid
-                    </button>
-                    <button
-                      onClick={() => setPaymentFilter("UNPAID")}
-                      className={`text-xs px-2 py-1 rounded ${
-                        paymentFilter === "UNPAID"
-                          ? "bg-amber-600 text-white"
-                          : "bg-slate-100"
-                      }`}
-                    >
-                      Unpaid
-                    </button>
+                    {(["ALL", "PAID", "UNPAID"] as const).map((f) => (
+                      <button
+                        key={f}
+                        onClick={() => setPaymentFilter(f)}
+                        className={`text-xs px-2 py-1 rounded ${
+                          paymentFilter === f
+                            ? f === "PAID"
+                              ? "bg-green-600 text-white"
+                              : f === "UNPAID"
+                              ? "bg-amber-600 text-white"
+                              : "bg-blue-600 text-white"
+                            : "bg-slate-100"
+                        }`}
+                      >
+                        {f === "ALL" ? "All" : f === "PAID" ? "Paid" : "Unpaid"}
+                      </button>
+                    ))}
                   </div>
                 </div>
-
                 <div className="flex items-center gap-2">
                   <span className="text-xs text-slate-500">Status</span>
                   <div className="flex gap-2">
-                    <button
-                      onClick={() => setStatusFilter("ALL")}
-                      className={`text-xs px-2 py-1 rounded ${
-                        statusFilter === "ALL"
-                          ? "bg-blue-600 text-white"
-                          : "bg-slate-100"
-                      }`}
-                    >
-                      All
-                    </button>
-                    <button
-                      onClick={() => setStatusFilter("DONE")}
-                      className={`text-xs px-2 py-1 rounded ${
-                        statusFilter === "DONE"
-                          ? "bg-green-600 text-white"
-                          : "bg-slate-100"
-                      }`}
-                    >
-                      Done
-                    </button>
-                    <button
-                      onClick={() => setStatusFilter("UPCOMING")}
-                      className={`text-xs px-2 py-1 rounded ${
-                        statusFilter === "UPCOMING"
-                          ? "bg-amber-600 text-white"
-                          : "bg-slate-100"
-                      }`}
-                    >
-                      Upcoming
-                    </button>
+                    {(["ALL", "DONE", "UPCOMING"] as const).map((f) => (
+                      <button
+                        key={f}
+                        onClick={() => setStatusFilter(f)}
+                        className={`text-xs px-2 py-1 rounded ${
+                          statusFilter === f
+                            ? f === "DONE"
+                              ? "bg-green-600 text-white"
+                              : f === "UPCOMING"
+                              ? "bg-amber-600 text-white"
+                              : "bg-blue-600 text-white"
+                            : "bg-slate-100"
+                        }`}
+                      >
+                        {f === "ALL"
+                          ? "All"
+                          : f === "DONE"
+                          ? "Done"
+                          : "Upcoming"}
+                      </button>
+                    ))}
                   </div>
                 </div>
               </div>
@@ -284,7 +237,6 @@ export default function BookingListPage() {
           {loading && (
             <div className="bg-white p-8 rounded-2xl shadow-sm">Loading...</div>
           )}
-
           {!loading && error && (
             <div className="bg-red-50 border border-red-200 p-6 rounded-2xl text-red-700">
               {error}
@@ -293,7 +245,8 @@ export default function BookingListPage() {
 
           {!loading && !error && bookings.length > 0 && (
             <>
-              <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
+              {/* ── DESKTOP TABLE ─────────────────────────── */}
+              <div className="hidden md:block bg-white rounded-2xl shadow-sm overflow-hidden border border-slate-100">
                 <table className="min-w-full text-sm">
                   <thead className="bg-slate-100 text-left">
                     <tr>
@@ -303,10 +256,10 @@ export default function BookingListPage() {
                       <th className="px-4 py-3">Jumlah</th>
                       <th className="px-4 py-3">Payment</th>
                       <th className="px-4 py-3">Status</th>
-                      <th className="px-4 py-3">Session</th>
+                      <th className="px-4 py-3">Action</th>
+                      <th className="px-4 py-3">Sesion</th>
                     </tr>
                   </thead>
-
                   <tbody>
                     {filteredBookings.length === 0 ? (
                       <tr>
@@ -321,56 +274,79 @@ export default function BookingListPage() {
                       filteredBookings.map((booking) => (
                         <tr
                           key={booking._id}
-                          className={`hover:bg-slate-50 ${
-                            isPsychiatrist ? "cursor-pointer" : ""
-                          }`}
-                          onClick={() => {
-                            if (!isPsychiatrist) return;
-                            if (!booking.userId) return;
-                            router.push(`/formbrief/${booking.userId}`);
-                          }}
+                          className="hover:bg-slate-50 border-t border-slate-50"
                         >
                           <td className="px-4 py-3">
                             {formatDateTime(booking.date)}
                           </td>
-
                           <td className="px-4 py-3 font-medium">
                             {role === "DOCTOR"
                               ? booking.userName
                               : booking.staffName}
                           </td>
-
                           <td className="px-4 py-3">
                             {formatSessionType(booking.type)}
                           </td>
-
                           <td className="px-4 py-3">
                             {formatAmount(booking.amount)}
                           </td>
-
                           <td className="px-4 py-3">
                             {booking.isPaid ? (
-                              <span className="text-green-600">Paid</span>
-                            ) : isPsychiatrist ? (
-                              <span>Unpaid</span>
+                              <span className="text-green-600 font-semibold">
+                                Paid
+                              </span>
                             ) : (
-                              <Link href={`/payment?bookingId=${booking._id}`}>
-                                Pay
-                              </Link>
+                              <span className="text-amber-600 font-semibold">
+                                Unpaid
+                              </span>
                             )}
                           </td>
-
                           <td className="px-4 py-3">
-                            {booking.isDone ? "Done" : "Upcoming"}
+                            <span
+                              className={`text-xs font-bold px-2 py-1 rounded-full ${
+                                booking.isDone
+                                  ? "bg-slate-100 text-slate-500"
+                                  : "bg-green-100 text-green-700"
+                              }`}
+                            >
+                              {booking.isDone ? "Done" : "Upcoming"}
+                            </span>
                           </td>
-
+                          {/* ── Action column: sama untuk user & dokter ── */}
                           <td className="px-4 py-3">
+                            <div className="flex items-center gap-2">
+                              {/* Pay Now — hanya untuk user yang belum bayar */}
+                              {!isPsychiatrist && !booking.isPaid && (
+                                <Link
+                                  href={`/payment?bookingId=${booking._id}`}
+                                  className="text-xs px-3 py-1.5 bg-orange-50 text-orange-600 font-semibold rounded-lg hover:bg-orange-100 transition-colors whitespace-nowrap border border-orange-200"
+                                >
+                                  Pay Now
+                                </Link>
+                              )}
+                              {/* Start Session — sudah bayar, belum selesai */}
+
+                              {/* Brief — hanya dokter */}
+                              {isPsychiatrist && booking.userId && (
+                                <button
+                                  onClick={() =>
+                                    router.push(`/formbrief/${booking.userId}`)
+                                  }
+                                  className="text-xs px-3 py-1.5 bg-blue-50 text-blue-700 font-semibold rounded-lg hover:bg-blue-100 transition-colors whitespace-nowrap border border-blue-100"
+                                >
+                                  Brief
+                                </button>
+                              )}
+                            </div>
+                          </td>
+                          <div className="px-4 py-3">
                             {booking.isPaid && !booking.isDone && (
-                              <div onClick={(e) => e.stopPropagation()}>
-                                <StartSessionButton bookingId={booking._id} type={booking.type} />
-                              </div>
+                              <StartSessionButton
+                                bookingId={booking._id}
+                                type={booking.type}
+                              />
                             )}
-                          </td>
+                          </div>
                         </tr>
                       ))
                     )}
@@ -378,78 +354,122 @@ export default function BookingListPage() {
                 </table>
               </div>
 
-              {/* ini MOBILE: card layout (di bawah md) */}
-              <div className="md:hidden divide-y divide-slate-100">
-                {bookings.map((booking) => (
-                  <div
-                    key={booking._id}
-                    className={`p-4 space-y-2 ${
-                      isPsychiatrist ? "cursor-pointer active:bg-slate-50" : ""
-                    }`}
-                    onClick={() => {
-                      if (!isPsychiatrist || !booking.userId) return;
-                      router.push(`/formbrief/${booking.userId}`);
-                    }}
-                  >
-                    {/* Baris atas: nama + badge status */}
-                    <div className="flex justify-between items-start">
-                      <span className="font-semibold text-slate-900">
-                        {role === "DOCTOR"
-                          ? booking.userName
-                          : booking.staffName}
-                      </span>
-                      <span
-                        className={`text-xs font-medium px-2 py-0.5 rounded-full ${
-                          booking.isDone
-                            ? "bg-slate-100 text-slate-500"
-                            : "bg-blue-100 text-blue-700"
-                        }`}
-                      >
-                        {booking.isDone ? "Done" : "Upcoming"}
-                      </span>
-                    </div>
-
-                    {/* Info tanggal & tipe sesi */}
-                    <div className="text-xs text-slate-500 space-y-1">
-                      <p>📅 {formatDateTime(booking.date)}</p>
-                      <p>
-                        🏷 {formatSessionType(booking.type)} &nbsp;·&nbsp;{" "}
-                        {formatAmount(booking.amount)}
-                      </p>
-                    </div>
-
-                    {/* Baris bawah: payment + tombol video call */}
-                    <div className="flex items-center justify-between pt-1">
-                      <div>
-                        {booking.isPaid ? (
-                          <span className="text-green-600 text-xs font-medium">
-                            ✓ Paid
+              {/* ── MOBILE CARDS ──────────────────────────── */}
+              <div className="md:hidden space-y-4">
+                {filteredBookings.length === 0 ? (
+                  <div className="bg-white p-10 rounded-2xl text-slate-400 text-center shadow-sm">
+                    No data found.
+                  </div>
+                ) : (
+                  filteredBookings.map((booking) => (
+                    <div
+                      key={booking._id}
+                      className="bg-white rounded-2xl p-5 shadow-sm border border-slate-100 flex flex-col gap-4"
+                    >
+                      {/* Header */}
+                      <div className="flex justify-between items-start">
+                        <div className="flex flex-col">
+                          <span className="text-[10px] font-bold text-blue-600 uppercase tracking-widest">
+                            {role === "DOCTOR" ? "Patient" : "Staff"}
                           </span>
-                        ) : isPsychiatrist ? (
-                          <span className="text-xs text-slate-400">Unpaid</span>
-                        ) : (
+                          <span className="font-extrabold text-slate-900 text-lg leading-tight">
+                            {role === "DOCTOR"
+                              ? booking.userName
+                              : booking.staffName}
+                          </span>
+                        </div>
+                        <span
+                          className={`text-[10px] font-bold uppercase px-2.5 py-1 rounded-full ${
+                            booking.isDone
+                              ? "bg-slate-100 text-slate-400"
+                              : "bg-green-100 text-green-700"
+                          }`}
+                        >
+                          {booking.isDone ? "Done" : "Upcoming"}
+                        </span>
+                      </div>
+
+                      {/* Info grid */}
+                      <div className="grid grid-cols-2 gap-y-4 border-y border-slate-50 py-4">
+                        <div className="flex flex-col">
+                          <span className="text-[10px] text-slate-400 uppercase font-bold tracking-tighter">
+                            Waktu Sesi
+                          </span>
+                          <span className="text-sm text-slate-700 font-bold">
+                            {formatDateTime(booking.date)}
+                          </span>
+                        </div>
+                        <div className="flex flex-col text-right">
+                          <span className="text-[10px] text-slate-400 uppercase font-bold tracking-tighter">
+                            Tipe Sesi
+                          </span>
+                          <span className="text-sm text-slate-700 font-bold">
+                            {formatSessionType(booking.type)}
+                          </span>
+                        </div>
+                        <div className="flex flex-col">
+                          <span className="text-[10px] text-slate-400 uppercase font-bold tracking-tighter">
+                            Total Bayar
+                          </span>
+                          <span className="text-sm font-black text-slate-900">
+                            {formatAmount(booking.amount)}
+                          </span>
+                        </div>
+                        <div className="flex flex-col text-right">
+                          <span className="text-[10px] text-slate-400 uppercase font-bold tracking-tighter">
+                            Pembayaran
+                          </span>
+                          {booking.isPaid ? (
+                            <span className="text-sm text-green-600 font-black">
+                              Lunas
+                            </span>
+                          ) : (
+                            <span className="text-sm text-amber-600 font-black">
+                              Belum Lunas
+                            </span>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Action buttons — berdampingan */}
+                      <div className="flex items-center gap-2">
+                        {/* Pay Now — user yang belum bayar */}
+                        {!isPsychiatrist && !booking.isPaid && (
                           <Link
                             href={`/payment?bookingId=${booking._id}`}
-                            className="text-xs text-blue-600 underline"
-                            onClick={(e) => e.stopPropagation()}
+                            className="flex-1 text-center text-xs px-4 py-3 bg-orange-50 text-orange-600 font-black rounded-xl border border-orange-200 hover:bg-orange-100 transition-all active:scale-95"
                           >
                             Pay Now
                           </Link>
                         )}
+                        {/* Start Session */}
+                        {booking.isPaid && !booking.isDone && (
+                          <div className="flex-1">
+                            <StartSessionButton
+                              bookingId={booking._id}
+                              type={booking.type}
+                            />
+                          </div>
+                        )}
+                        {/* Brief — dokter */}
+                        {isPsychiatrist && booking.userId && (
+                          <button
+                            onClick={() =>
+                              router.push(`/formbrief/${booking.userId}`)
+                            }
+                            className="flex-1 text-xs px-4 py-3 bg-blue-50 text-blue-700 font-black rounded-xl border border-blue-100 hover:bg-blue-100 transition-all active:scale-95"
+                          >
+                            Lihat Brief
+                          </button>
+                        )}
                       </div>
-
-                      {/* Tombol video call */}
-                      {booking.isPaid && !booking.isDone && (
-                        <div onClick={(e) => e.stopPropagation()}>
-                          <StartSessionButton bookingId={booking._id} type={booking.type} />
-                        </div>
-                      )}
                     </div>
-                  </div>
-                ))}
+                  ))
+                )}
               </div>
             </>
           )}
+
           {!loading && !error && bookings.length === 0 && (
             <div className="bg-white p-8 rounded-2xl shadow-sm text-slate-500 text-center">
               Tidak ada booking.
