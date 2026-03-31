@@ -62,7 +62,7 @@ export default function BookingForm({ staffId }: BookingFormProps) {
       }
     }
     fetchDoctors()
-  }, [])
+  }, [selectedDoctorId])
 
   // Update amount when sessionType changes
   useEffect(() => {
@@ -144,17 +144,30 @@ export default function BookingForm({ staffId }: BookingFormProps) {
     setIsLoading(true)
     setError(null)
     setSuccess(null)
-
-    // Combine selectedDate and selectedTime into a single string for backend
-    let combinedDate = ''
-    if (selectedDate && selectedTime) {
-      // Extract start time from selectedTime (e.g. '09:00 - 09:50' -> '09:00')
-      const startTime = selectedTime.split(' - ')[0]
-      combinedDate = new Date(`${selectedDate}T${startTime}:00`).toISOString()
+    // Basic client-side validation
+    if (!selectedDate) {
+      setError('Pilih tanggal sesi terlebih dahulu.')
+      setIsLoading(false)
+      return
+    }
+    if (!selectedTime) {
+      setError('Pilih jam sesi terlebih dahulu.')
+      setIsLoading(false)
+      return
+    }
+    if (!amount) {
+      setError('Harga paket tidak tersedia untuk dokter ini.')
+      setIsLoading(false)
+      return
     }
 
+    // Combine selectedDate and selectedTime into a single ISO string
+    const startTime = selectedTime.split(' - ')[0]
+    const combinedDate = new Date(`${selectedDate}T${startTime}:00`).toISOString()
+
     // Validate that the selected doctor's paket contains the chosen session type
-    const mapType: 'videocall' | 'chat-only' | 'offline' = sessionType === 'video' ? 'videocall' : sessionType === 'chat' ? 'chat-only' : 'offline'
+    const mapType: 'videocall' | 'chat-only' | 'offline' =
+      sessionType === 'video' ? 'videocall' : sessionType === 'chat' ? 'chat-only' : 'offline'
     const hasPaket = selectedDoctor?.psychiatristInfo?.paket?.some(p => p.type === mapType)
     if (!hasPaket) {
       setError('Tipe sesi yang dipilih tidak tersedia untuk dokter ini.')
@@ -172,23 +185,28 @@ export default function BookingForm({ staffId }: BookingFormProps) {
           date: combinedDate,
           sessionDuration,
           amount,
-          sessionType
-        })
+          sessionType,
+        }),
       })
 
       const data = await response.json()
-      if (!response.ok) throw new Error(data.message || "Failed to create booking")
+      if (!response.ok) {
+        // show server message if provided
+        setError(data?.message || 'Gagal membuat booking')
+        setIsLoading(false)
+        return
+      }
 
       setSuccess(`Booking created! Doctor: ${selectedDoctor?.name}`)
       setSelectedDate('')
       setSelectedTime('')
-      
+      // navigate only on success
+      router.push('/bookinglist')
     } catch (err: unknown) {
-      if (err instanceof Error && err.message.includes("Unauthorized")) router.push('/login')
+      if (err instanceof Error && err.message.includes('Unauthorized')) router.push('/login')
       setError(err instanceof Error ? err.message : String(err))
     } finally {
       setIsLoading(false)
-      router.push('/bookinglist')
     }
   }
 
@@ -404,12 +422,12 @@ export default function BookingForm({ staffId }: BookingFormProps) {
                 <div className="mt-3 text-sm">
                   <div className="font-semibold text-blue-900">Paket</div>
                   <div className="flex gap-2 mt-1 flex-wrap">
-                    {[
+                    {( [
                       { type: 'chat-only', label: 'Chat' },
                       { type: 'videocall', label: 'Video' },
                       { type: 'offline', label: 'Offline' },
-                    ].map((t) => {
-                      const found = selectedDoctor.psychiatristInfo?.paket?.find(p => p.type === (t.type as any))
+                    ] as const).map((t) => {
+                      const found = selectedDoctor.psychiatristInfo?.paket?.find(p => p.type === t.type)
                       return (
                         <div key={t.type} className="inline-flex items-center h-8 px-3 rounded-md border border-blue-200 text-xs font-semibold bg-white text-blue-700">
                           <span className="font-medium mr-2">{t.label}</span>

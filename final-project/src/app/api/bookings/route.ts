@@ -30,6 +30,17 @@ export async function POST(req: Request) {
       );
     }
 
+    // validate staffId is a valid ObjectId
+    if (!ObjectId.isValid(staffId)) {
+      return NextResponse.json({ message: "Invalid staffId" }, { status: 400 });
+    }
+
+    // validate date is a valid ISO datetime
+    const dateObj = new Date(date);
+    if (Number.isNaN(dateObj.getTime())) {
+      return NextResponse.json({ message: "Invalid date" }, { status: 400 });
+    }
+
     const db = await getDB();
     
     const mapType = sessionType === 'video' ? 'videocall' : sessionType === 'chat' ? 'chat-only' : 'offline'
@@ -38,7 +49,7 @@ export async function POST(req: Request) {
       userId: new ObjectId(session.user.id),
       staffId: new ObjectId(staffId),
       formBriefId: formBriefId ? new ObjectId(formBriefId) : null,
-      date: new Date(date),
+      date: dateObj,
       sessionDuration: parseInt(sessionDuration) || 30,
       amount: parseFloat(amount) || 0,
       type: mapType,
@@ -69,8 +80,18 @@ export async function POST(req: Request) {
 
     console.log("aku disini");
 
-    const userData = await User.getUserById(bookingData.userId.toString());
-    const doctorData = await User.getUserById(bookingData.staffId.toString());
+    let userData = null;
+    let doctorData = null;
+    try {
+      userData = await User.getUserById(bookingData.userId.toString());
+    } catch (e) {
+      console.warn("Could not load user data for booking email:", e);
+    }
+    try {
+      doctorData = await User.getUserById(bookingData.staffId.toString());
+    } catch (e) {
+      console.warn("Could not load doctor data for booking email:", e);
+    }
 
     // build a tidy email payload and send without breaking the booking flow
     const emailPayload = {

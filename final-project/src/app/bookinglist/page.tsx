@@ -13,6 +13,7 @@ type Booking = {
   staffId: string;
   date: string;
   sessionDuration: number;
+  type: "videocall" | "chat-only" | "offline";
   amount: number;
   isPaid: boolean;
   isDone: boolean;
@@ -43,6 +44,19 @@ const formatAmount = (amount: number) => {
     currency: "IDR",
     maximumFractionDigits: 0,
   }).format(amount || 0);
+};
+
+const formatSessionType = (type?: string) => {
+  switch (type) {
+    case "videocall":
+      return "Video";
+    case "chat-only":
+      return "Chat";
+    case "offline":
+      return "Offline";
+    default:
+      return "Unknown";
+  }
 };
 
 export default function BookingListPage() {
@@ -285,7 +299,7 @@ export default function BookingListPage() {
                     <tr>
                       <th className="px-4 py-3">Tanggal</th>
                       <th className="px-4 py-3">Nama</th>
-                      <th className="px-4 py-3">Durasi</th>
+                      <th className="px-4 py-3">Tipe Sesi</th>
                       <th className="px-4 py-3">Jumlah</th>
                       <th className="px-4 py-3">Payment</th>
                       <th className="px-4 py-3">Status</th>
@@ -327,7 +341,7 @@ export default function BookingListPage() {
                           </td>
 
                           <td className="px-4 py-3">
-                            {booking.sessionDuration} min
+                            {formatSessionType(booking.type)}
                           </td>
 
                           <td className="px-4 py-3">
@@ -352,7 +366,9 @@ export default function BookingListPage() {
 
                           <td className="px-4 py-3">
                             {booking.isPaid && !booking.isDone && (
-                              <StartSessionButton bookingId={booking._id} />
+                              <div onClick={(e) => e.stopPropagation()}>
+                                <StartSessionButton bookingId={booking._id} type={booking.type} />
+                              </div>
                             )}
                           </td>
                         </tr>
@@ -393,11 +409,11 @@ export default function BookingListPage() {
                       </span>
                     </div>
 
-                    {/* Info tanggal & durasi */}
+                    {/* Info tanggal & tipe sesi */}
                     <div className="text-xs text-slate-500 space-y-1">
                       <p>📅 {formatDateTime(booking.date)}</p>
                       <p>
-                        ⏱ {booking.sessionDuration} min &nbsp;·&nbsp;{" "}
+                        🏷 {formatSessionType(booking.type)} &nbsp;·&nbsp;{" "}
                         {formatAmount(booking.amount)}
                       </p>
                     </div>
@@ -425,7 +441,7 @@ export default function BookingListPage() {
                       {/* Tombol video call */}
                       {booking.isPaid && !booking.isDone && (
                         <div onClick={(e) => e.stopPropagation()}>
-                          <StartSessionButton bookingId={booking._id} />
+                          <StartSessionButton bookingId={booking._id} type={booking.type} />
                         </div>
                       )}
                     </div>

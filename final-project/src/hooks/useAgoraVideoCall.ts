@@ -53,10 +53,33 @@ async function callVideoAPI(
 export function useAgoraVideoCall({
   channelName,
   onEnded,
+  rtcEnabled = true,
 }: {
   channelName: string;
   onEnded?: () => void;
+  rtcEnabled?: boolean;
 }) {
+  // If RTC is disabled (chat-only mode), return a dummy no-op implementation
+  if (!rtcEnabled) {
+    const noop = async () => {};
+    return {
+      connectionState: "idle" as ConnectionState,
+      localVideoTrack: null,
+      localAudioTrack: null,
+      remoteVideoTrack: null,
+      remoteAudioTrack: null,
+      isMicOn: false,
+      isCamOn: false,
+      isRemoteSpeaking: false,
+      isRecording: false,
+      error: null as string | null,
+      join: noop,
+      leave: noop,
+      toggleMic: noop,
+      toggleCam: noop,
+      toggleRecording: noop,
+    };
+  }
   const clientRef = useRef<IAgoraRTCClient | null>(null);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const recordedChunksRef = useRef<Blob[]>([]);

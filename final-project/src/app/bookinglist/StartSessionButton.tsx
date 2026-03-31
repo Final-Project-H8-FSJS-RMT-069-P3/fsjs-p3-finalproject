@@ -9,7 +9,13 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 
 // Tempel fungsi ini di dalam komponen BookingList Anda
-function StartSessionButton({ bookingId }: { bookingId: string }) {
+function StartSessionButton({
+  bookingId,
+  type,
+}: {
+  bookingId: string;
+  type?: "videocall" | "chat-only" | "offline";
+}) {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -19,6 +25,19 @@ function StartSessionButton({ bookingId }: { bookingId: string }) {
     setError("");
 
     try {
+      // Chat-only: route directly to videocall page in chat-only mode
+      if (type === "chat-only") {
+        router.push(`/videocall?channel=${bookingId}&mode=chat-only`);
+        return;
+      }
+
+      // Offline session: no live session — show a message
+      if (type === "offline") {
+        alert("Offline session — no live room. Check booking details.");
+        return;
+      }
+
+      // Default: videocall flow (create room then redirect)
       const res = await fetch("/api/video/token", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -41,14 +60,25 @@ function StartSessionButton({ bookingId }: { bookingId: string }) {
     }
   }
 
+  const label = loading
+    ? "Memuat..."
+    : type === "chat-only"
+    ? "💬 Mulai Chat"
+    : type === "offline"
+    ? "ℹ️ Offline"
+    : "🎥 Mulai Sesi Video";
+
   return (
     <div className="flex flex-col gap-1">
       <button
-        onClick={handleStartSession}
+        onClick={(e) => {
+          e.stopPropagation();
+          handleStartSession();
+        }}
         disabled={loading}
         className="px-4 py-2 bg-blue-600 text-white text-sm font-bold rounded-xl hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all active:scale-95"
       >
-        {loading ? "Memuat..." : "🎥 Mulai Sesi Video"}
+        {label}
       </button>
       {error && <p className="text-xs text-red-500">{error}</p>}
     </div>
