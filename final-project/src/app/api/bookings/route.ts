@@ -21,7 +21,7 @@ export async function POST(req: Request) {
     }
 
     const body = await req.json();
-    const { staffId, formBriefId, date, sessionDuration, amount } = body;
+    const { staffId, formBriefId, date, sessionDuration, amount, sessionType } = body;
 
     if (!staffId || !date) {
       return NextResponse.json(
@@ -31,6 +31,8 @@ export async function POST(req: Request) {
     }
 
     const db = await getDB();
+    
+    const mapType = sessionType === 'video' ? 'videocall' : sessionType === 'chat' ? 'chat-only' : 'offline'
 
     const bookingData = {
       userId: new ObjectId(session.user.id),
@@ -39,10 +41,20 @@ export async function POST(req: Request) {
       date: new Date(date),
       sessionDuration: parseInt(sessionDuration) || 30,
       amount: parseFloat(amount) || 0,
+      type: mapType,
       isPaid: false,
       isDone: false,
       createdAt: new Date(),
     };
+
+    // Prevent double-booking for the exact same staff and datetime
+    const existing = await db.collection("UserBookings").findOne({
+      staffId: new ObjectId(staffId),
+      date: bookingData.date,
+    });
+    if (existing) {
+      return NextResponse.json({ message: 'Time slot already booked' }, { status: 409 })
+    }
 
     const result = await db.collection("UserBookings").insertOne(bookingData);
 

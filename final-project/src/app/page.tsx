@@ -4,6 +4,7 @@ import Navbar from "@/components/navbar";
 import Link from "next/link";
 import { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
+import Carousel3D from "@/components/animation";
 
 /*
 const PSYCHOLOGISTS = [
@@ -62,6 +63,7 @@ type ApiDoctor = {
     certificate?: string;
     experience?: number;
     scheduleDays?: string[];
+    speciality?: string[];
   };
 };
 
@@ -129,10 +131,26 @@ const TABLE_ROWS = [
 ];
 
 const FAQS = [
-  "Bagaimana cara booking sesi pertama saya?",
-  "Apakah identitas saya akan dijaga kerahasiaannya?",
-  "Apakah pendengarMu menerima asuransi?",
-  "Apa perbedaan psikolog dan psikiater?",
+  {
+    question: "Bagaimana cara booking sesi pertama saya?",
+    answer:
+      "Cukup pilih psikolog yang sesuai, tentukan jadwal yang nyaman, lalu lakukan pembayaran. setelah itu kamu bisa start sesion dengan klik button video call pada list booking",
+  },
+  {
+    question: "Apakah identitas saya akan dijaga kerahasiaannya?",
+    answer:
+      "Ya, 100%. Seluruh data dan percakapan kamu bersifat rahasia dan tidak akan pernah dibagikan kepada pihak ketiga tanpa izin eksplisit darimu.",
+  },
+  {
+    question: "Apakah pendengarMu menerima asuransi?",
+    answer:
+      "Saat ini kami belum bekerja sama dengan penyedia asuransi. Namun kami menyediakan harga yang transparan dan terjangkau agar layanan ini bisa diakses semua kalangan.",
+  },
+  {
+    question: "Apa perbedaan psikolog dan psikiater?",
+    answer:
+      "Psikolog berfokus pada terapi bicara dan pendekatan psikologis, sedangkan psikiater adalah dokter medis yang dapat meresepkan obat. Jika tidak yakin mana yang dibutuhkan, tim kami siap membantu mengarahkanmu.",
+  },
 ];
 
 const FOOTER_COLS = [
@@ -198,7 +216,7 @@ const cards = [
   },
 ];
 
-function FaqItem({ question }: { question: string }) {
+function FaqItem({ question, answer }: { question: string; answer: string }) {
   const [open, setOpen] = useState(false);
   return (
     <div
@@ -208,7 +226,7 @@ function FaqItem({ question }: { question: string }) {
       <div className="flex justify-between items-center">
         <h4 className="font-bold text-lg text-gray-900 pr-4">{question}</h4>
         <svg
-          className={`w-6 h-6 text-blue-900 transition-transform duration-200 ${
+          className={`w-6 h-6 text-blue-900 transition-transform duration-200 shrink-0 ${
             open ? "rotate-180" : ""
           }`}
           fill="none"
@@ -224,11 +242,7 @@ function FaqItem({ question }: { question: string }) {
         </svg>
       </div>
       {open && (
-        <p className="mt-4 text-gray-500 text-sm leading-relaxed">
-          Hubungi tim kami melalui WhatsApp atau langsung booking via website.
-          Pilih psikolog, tentukan jadwal, dan lakukan pembayaran. Sesi akan
-          dimulai sesuai waktu yang dipilih.
-        </p>
+        <p className="mt-4 text-gray-500 text-sm leading-relaxed">{answer}</p>
       )}
     </div>
   );
@@ -280,7 +294,7 @@ export default function Home() {
                 ? `${doctor.psychiatristInfo.experience}+`
                 : "Baru",
             tags:
-              doctor.psychiatristInfo?.scheduleDays?.slice(0, 3) ||
+              doctor.psychiatristInfo?.speciality ||
               DEFAULT_DOCTOR_TAGS,
             img: DEFAULT_DOCTOR_IMAGES[index % DEFAULT_DOCTOR_IMAGES.length],
           })
@@ -374,82 +388,93 @@ export default function Home() {
                 </p>
               </div>
             </div>
-            <div className="relative">
-              <div className="absolute -top-20 -right-20 w-96 h-96 bg-blue-100/30 rounded-full blur-3xl pointer-events-none" />
-              <div className="relative z-10 rounded-[2.5rem] overflow-hidden shadow-2xl rotate-2 aspect-[4/5] bg-gradient-to-br from-blue-100 to-blue-200">
-                <img
-                  src="https://i.pinimg.com/1200x/77/07/33/770733699f05aec6985da6bb637ce4c8.jpg"
-                  alt=""
-                  className="w-full h-full object-cover"
+            <div className="relative w-full py-20">
+              {/* Efek Glow di belakang agar estetik */}
+              <div className="absolute inset-0 bg-blue-200/20 rounded-full blur-[100px] pointer-events-none" />
+
+              {/* Container Utama: Hapus rotate-2 dan overflow-hidden */}
+              <div className="relative z-10 w-full h-[550px] flex items-center justify-center">
+                <Carousel3D
+                  background="transparent"
+                  showReflection={true}
+                  radius={300}
                 />
               </div>
             </div>
           </div>
         </section>
-
         <section className="py-12 bg-white">
           <div className="max-w-7xl mx-auto px-6">
             <div className="grid md:grid-cols-3 gap-8">
-              {[
-                {
-                  title: "Bisa Online/Offline",
-                  desc: "Pilih kenyamananmu sendiri, via video call atau tatap muka langsung.",
-                  icon: (
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      d="M15 10l4.553-2.069A1 1 0 0121 8.87v6.26a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"
-                    />
-                  ),
-                },
-                {
-                  title: "Biaya Terjangkau",
-                  desc: "Kesehatan mental untuk semua dengan harga yang transparan dan kompetitif.",
-                  icon: (
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"
-                    />
-                  ),
-                },
-                {
-                  title: "Psikolog Terpercaya",
-                  desc: "Seluruh tim kami adalah psikolog klinis yang telah melewati seleksi ketat.",
-                  icon: (
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"
-                    />
-                  ),
-                },
-              ].map((item) => (
-                <div
-                  key={item.title}
-                  className="flex items-start gap-4 p-6 rounded-2xl hover:bg-blue-50/50 transition-colors group"
-                >
-                  <div className="w-14 h-14 shrink-0 rounded-2xl bg-blue-100 flex items-center justify-center text-blue-900 group-hover:scale-110 transition-transform">
-                    <svg
-                      className="w-7 h-7"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                      strokeWidth={1.8}
-                    >
-                      {item.icon}
-                    </svg>
+              {(() => {
+                const specialtiesLabel =
+                  doctors && doctors.length > 0 && doctors[0].tags && doctors[0].tags.length > 0
+                    ? doctors[0].tags.slice(0, 3).join(", ")
+                    : "Online & Offline";
+
+                const FEATURES = [
+                  {
+                    title: "Spesialisasi",
+                    desc: specialtiesLabel,
+                    icon: (
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        d="M15 10l4.553-2.069A1 1 0 0121 8.87v6.26a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"
+                      />
+                    ),
+                  },
+                  {
+                    title: "Biaya Terjangkau",
+                    desc: "Kesehatan mental untuk semua dengan harga yang transparan dan kompetitif.",
+                    icon: (
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"
+                      />
+                    ),
+                  },
+                  {
+                    title: "Psikolog Terpercaya",
+                    desc: "Seluruh tim kami adalah psikolog klinis yang telah melewati seleksi ketat.",
+                    icon: (
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"
+                      />
+                    ),
+                  },
+                ];
+
+                return FEATURES.map((item) => (
+                  <div
+                    key={item.title}
+                    className="flex items-start gap-4 p-6 rounded-2xl hover:bg-blue-50/50 transition-colors group"
+                  >
+                    <div className="w-14 h-14 shrink-0 rounded-2xl bg-blue-100 flex items-center justify-center text-blue-900 group-hover:scale-110 transition-transform">
+                      <svg
+                        className="w-7 h-7"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                        strokeWidth={1.8}
+                      >
+                        {item.icon}
+                      </svg>
+                    </div>
+                    <div>
+                      <h3 className="font-bold text-xl mb-1 text-gray-900">
+                        {item.title}
+                      </h3>
+                      <p className="text-gray-500 text-sm leading-relaxed">
+                        {item.desc}
+                      </p>
+                    </div>
                   </div>
-                  <div>
-                    <h3 className="font-bold text-xl mb-1 text-gray-900">
-                      {item.title}
-                    </h3>
-                    <p className="text-gray-500 text-sm leading-relaxed">
-                      {item.desc}
-                    </p>
-                  </div>
-                </div>
-              ))}
+                ));
+              })()}
             </div>
           </div>
         </section>
@@ -466,7 +491,7 @@ export default function Home() {
               </p>
             </div>
 
-            <div className="overflow-hidden" style={{}}>
+            <div className="overflow-hidden pb-10" style={{}}>
               <div
                 className="flex gap-8 w-max"
                 style={{ animation: "scroll-left 30s linear infinite" }}
@@ -527,7 +552,6 @@ export default function Home() {
                           className="w-full py-3 bg-blue-900 text-white font-bold rounded-xl hover:bg-blue-800 transition-colors active:scale-95
                         "
                         >
-                          <a href="/listpsikolog">Booking Jadwal</a>
                           <Link href="/listpsikolog">Booking Jadwal</Link>
                         </button>
                       </div>
@@ -1003,8 +1027,12 @@ export default function Home() {
               Pertanyaan Populer
             </h2>
             <div className="space-y-4">
-              {FAQS.map((q) => (
-                <FaqItem key={q} question={q} />
+              {FAQS.map((faq) => (
+                <FaqItem
+                  key={faq.question}
+                  question={faq.question}
+                  answer={faq.answer}
+                />
               ))}
             </div>
           </div>
@@ -1022,12 +1050,18 @@ export default function Home() {
               kapan pun kamu membutuhkan teman bicara.
             </p>
             <div className="flex flex-col sm:flex-row justify-center gap-6">
-              <button className="bg-orange-500 text-white px-10 py-5 rounded-2xl font-bold text-xl shadow-2xl hover:scale-105 transition-transform active:scale-95">
+              <Link
+                href="/login"
+                className="bg-orange-500 text-white px-10 py-5 rounded-2xl font-bold text-xl shadow-2xl hover:scale-105 transition-transform active:scale-95"
+              >
                 Booking Sekarang
-              </button>
-              <button className="bg-white text-blue-900 px-10 py-5 rounded-2xl font-bold text-xl shadow-2xl hover:scale-105 transition-transform active:scale-95">
+              </Link>
+              <Link
+                href="/login"
+                className="bg-white text-blue-900 px-10 py-5 rounded-2xl font-bold text-xl shadow-2xl hover:scale-105 transition-transform active:scale-95"
+              >
                 Konsultasi Gratis via Chat
-              </button>
+              </Link>
             </div>
           </div>
         </section>

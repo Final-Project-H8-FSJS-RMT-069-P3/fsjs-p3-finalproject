@@ -7,14 +7,13 @@ export async function GET(req: NextRequest) {
   if (!session || !session.user) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
-
-  if (session.user.role !== "DOCTOR") {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
-  }
-
   const userId = req.nextUrl.searchParams.get("userId");
   if (!userId) {
     return NextResponse.json({ error: "Missing userId" }, { status: 400 });
+  }
+
+  if (session.user.role !== "DOCTOR" && session.user.id !== userId) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
   }
 
   try {
@@ -23,6 +22,9 @@ export async function GET(req: NextRequest) {
     return NextResponse.json(briefs);
   } catch (err) {
     console.error(err);
-    return NextResponse.json({ error: "Failed to fetch FormBriefs" }, { status: 500 });
+    return NextResponse.json(
+      { error: "Failed to fetch FormBriefs" },
+      { status: 500 }
+    );
   }
 }

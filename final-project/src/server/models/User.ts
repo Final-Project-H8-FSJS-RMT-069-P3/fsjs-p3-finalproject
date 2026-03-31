@@ -15,11 +15,22 @@ export interface IUser {
     phoneNumber: string;
     address: string;
     psychiatristInfo?: {
-        certificate: string;
-        experience: number;
-        scheduleDays: string[];
-        scheduleTimes: string[];
+        certificate?: string;
+        experience?: number;
+        imageUrl?: string;
+        roleSpecialist?: string;
+        speciality?: string[];
+        about?: string;
+        paket?: IPrice[];
+        mode?: "online" | "offline" | "online & offline";
+        scheduleDays?: string[];
+        scheduleTimes?: string[];
     };
+}
+
+interface IPrice {
+    price: number;
+    type: "videocall" | "chat-only" | "offline";
 }
 
 
@@ -79,4 +90,26 @@ export default class User {
         const psychiatrists = await collection.find({ role: "psychiatrist" }).toArray();
         return psychiatrists;
     }
+
+    static async getPsychiatristById(id: string): Promise<WithId<IUser> | null> {
+        const collection = await this.getCollection();
+        const psychiatrist = await collection.findOne({ _id: new ObjectId(id), role: "psychiatrist" });
+        if (!psychiatrist) {
+            throw new NotFoundError("Psychiatrist not found");
+        }
+        return psychiatrist;
+    }
+
+    static async updatePsychiatristInfo(id: string, info: Partial<IUser["psychiatristInfo"]>): Promise<string> {
+        const collection = await this.getCollection();
+        const result = await collection.updateOne(
+            { _id: new ObjectId(id), role: "psychiatrist" },
+            { $set: { psychiatristInfo: info } }
+        );
+        if (result.matchedCount === 0) {
+            throw new NotFoundError("Psychiatrist not found");
+        }
+        return "Psychiatrist info updated successfully";
+    }
+    
 }
