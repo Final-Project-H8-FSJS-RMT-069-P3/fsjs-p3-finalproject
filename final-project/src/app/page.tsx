@@ -359,10 +359,10 @@ export default function Home() {
                   </svg>
                 </Link>
                 <Link
-                  href="/listpsikolog"
+                  href="/chatbot"
                   className="bg-blue-800 text-white px-8 py-4 rounded-xl font-bold text-lg shadow-lg hover:bg-blue-700 transition-all active:scale-95"
                 >
-                  Lihat List Psikolog
+                  Chat dengan AI Psikolog
                 </Link>
               </div>
               <div className="mt-10 flex items-center gap-4">
