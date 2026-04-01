@@ -39,7 +39,7 @@ export function EmailTemplate(props: EmailTemplateProps) {
       }}
     >
       {/* Greeting */}
-      <p>{isDoctor ? `Dear${doctorName},` : `Dear ${patientName},`}</p>
+      <p>{isDoctor ? `${doctorName},` : `Dear ${patientName},`}</p>
 
       {/* Intro */}
       <p>

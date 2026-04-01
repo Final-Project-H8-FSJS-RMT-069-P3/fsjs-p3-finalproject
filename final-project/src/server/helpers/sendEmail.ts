@@ -24,6 +24,8 @@ export async function SendEmail(payload: EmailTemplateProps) {
   if (payload.type === "doctor" && !payload?.doctorEmail) {
     throw new Error("Missing recipient email in SendEmail payload");
   }
+  console.log("PAYLOAD:", payload);
+console.log("PATIENT EMAIL:", payload.patientEmail);
   if (payload.type === "patient" && !payload?.patientEmail) {
     throw new Error("Missing recipient email in SendEmail payload");
   }
@@ -38,8 +40,7 @@ export async function SendEmail(payload: EmailTemplateProps) {
 
   const resend = new ResendClient(apiKey);
   const to = payload.type === "doctor" ? payload.doctorEmail : payload.patientEmail;
-  console.log("SendEmail TO:", to);
-console.log("TYPE:", payload.type);
+ 
 
   const subject = payload.type === "doctor" ? `New booking — ${payload.patientName}` : `Booking Confirmation — ${payload.doctorName}`;  
   

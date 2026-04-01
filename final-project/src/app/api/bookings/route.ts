@@ -4,8 +4,7 @@ import { getDB } from "../../../server/config/mongodb"; //<-- import dari src yg
 import { ObjectId } from "mongodb"; //<-- import dari src yg bener
 import { SendEmail } from "@/server/helpers/sendEmail";
 import User from "@/server/models/User";
-import { sendWhatsApp  } from "@/server/helpers/sendWa";
-
+import { sendWhatsApp } from "@/server/helpers/sendWa";
 
 export async function POST(req: Request) {
   try {
@@ -23,7 +22,8 @@ export async function POST(req: Request) {
     }
 
     const body = await req.json();
-    const { staffId, formBriefId, date, sessionDuration, amount, sessionType } = body;
+    const { staffId, formBriefId, date, sessionDuration, amount, sessionType } =
+      body;
 
     if (!staffId || !date) {
       return NextResponse.json(
@@ -44,8 +44,13 @@ export async function POST(req: Request) {
     }
 
     const db = await getDB();
-    
-    const mapType = sessionType === 'video' ? 'videocall' : sessionType === 'chat' ? 'chat-only' : 'offline'
+
+    const mapType =
+      sessionType === "video"
+        ? "videocall"
+        : sessionType === "chat"
+          ? "chat-only"
+          : "offline";
 
     const bookingData = {
       userId: new ObjectId(session.user.id),
@@ -66,7 +71,10 @@ export async function POST(req: Request) {
       date: bookingData.date,
     });
     if (existing) {
-      return NextResponse.json({ message: 'Time slot already booked' }, { status: 409 })
+      return NextResponse.json(
+        { message: "Time slot already booked" },
+        { status: 409 },
+      );
     }
 
     const result = await db.collection("UserBookings").insertOne(bookingData);
@@ -117,14 +125,14 @@ export async function POST(req: Request) {
       priceTier: bookingData.amount.toString(),
     };
     try {
-      await SendEmail({
+      void SendEmail({
         type: "doctor",
         ...emailPayload,
-      });
-      await SendEmail({
+      }).catch((err: any) => console.error("Failed to send booking email:", err));
+      void SendEmail({
         type: "patient",
         ...emailPayload,
-      });
+      }).catch((err: any) => console.error("Failed to send booking email:", err));
       console.log("Email sent");
     } catch (emailErr) {
       console.error("Failed to send booking email:", emailErr);
@@ -133,50 +141,46 @@ export async function POST(req: Request) {
 
     // Send WhatsApp notification to doctor
     if (doctorData?.phoneNumber) {
-     const waMessage = [
-  "📢 *New Booking Notification*",
-  "",
-  "You have a new session booking:",
-  "",
-  `👤 *Patient* : ${emailPayload.patientName}`,
-  `📅 *Date*    : ${emailPayload.bookingDate}`,
-  `⏰ *Time*    : ${emailPayload.bookingTime}`,
-  `💼 *Session* : ${mapType}`,
-  `💰 *Fee*     : Rp ${emailPayload.priceTier}`,
-  "",
-  "Please check your dashboard for details.",
-  "",
-  "Thank you 🙏",
-].join("\n");
-      void sendWhatsApp(doctorData.phoneNumber, waMessage).then(() =>
-        console.log("WhatsApp sent to doctor", doctorData?.phoneNumber)
-      ).catch((err: any) =>
-        console.error("Failed to send WhatsApp:", err)
-      );
+      const waMessage = [
+        "📢 *Booking Request*",
+        "",
+        `Patient : ${emailPayload.patientName}`,
+        `Date    : ${emailPayload.bookingDate}`,
+        `Time    : ${emailPayload.bookingTime}`,
+        `Session : ${mapType}`,
+        "Status  : *PENDING*",
+        "",
+        "Waiting for patient payment confirmation.",
+      ].join("\n");
+      void sendWhatsApp(doctorData.phoneNumber, waMessage)
+        .then(() => console.log("WhatsApp sent to doctor"))
+  .catch((err) => console.error("WA doctor error:", err));
     }
-if (userData?.phoneNumber) {
-  const waMessage = [
-  "✅ *Booking Confirmed*",
-  "",
-  `Hi ${emailPayload.patientName},`,
-  "",
-  "Your session is scheduled:",
-  "",
-  `👨‍⚕️ Doctor : ${emailPayload.doctorName}`,
-  `📅 Date     : ${emailPayload.bookingDate}`,
-  `⏰ Time     : ${emailPayload.bookingTime}`,
-  `💼 Session  : ${mapType}`,
-  "",
- 
-  "Please be ready before the session starts 🙌",
-  "",
-  "Thank you 🙏",
-].join("\n");
-      void sendWhatsApp(userData.phoneNumber, waMessage).then(() =>
-        console.log("WhatsApp sent to patient", userData?.phoneNumber)
-      ).catch((err: any) =>
-        console.error("Failed to send WhatsApp:", err)
-      );
+    const paymentUrl = `${process.env.NEXT_PUBLIC_BASE_URL}payment?bookingId=${result.insertedId.toString()}`;
+    if (userData?.phoneNumber) {
+      const waMessage = [
+        "*Complete Your Payment*",
+        "",
+        `Hi ${emailPayload.patientName},`,
+        "",
+        "Booking details:",
+        "",
+        `Doctor  : ${emailPayload.doctorName}`,
+        `Date    : ${emailPayload.bookingDate}`,
+        `Time    : ${emailPayload.bookingTime}`,
+        `Session : ${mapType}`,
+        `Price   : Rp ${emailPayload.priceTier}`,
+        "",
+        "Payment link:",
+        paymentUrl,
+        "",
+        "Your booking will be confirmed after payment.",
+      ].join("\n");
+      void sendWhatsApp(userData.phoneNumber, waMessage)
+        .then(() =>
+          console.log("WhatsApp sent to patient", userData?.phoneNumber),
+        )
+        .catch((err: any) => console.error("Failed to send WhatsApp:", err));
     }
     return NextResponse.json(
       {
