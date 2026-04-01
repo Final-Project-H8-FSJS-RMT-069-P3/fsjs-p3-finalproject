@@ -111,7 +111,9 @@ export async function POST(req: Request) {
   });
 
   const emailPayload: EmailTemplateProps = {
+    type: "doctor",
     doctorEmail: doctor.email ?? "",
+    patientEmail: patient.email ?? "",
     doctorName: doctor.name,
     patientName: patient.name ?? "Unknown",
     patientPhone: patient.phone ?? "-",
