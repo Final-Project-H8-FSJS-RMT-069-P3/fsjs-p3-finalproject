@@ -765,7 +765,7 @@ export default function Home() {
                   key={card.id}
                   onMouseEnter={() => setHoveredCard(card.id)}
                   onMouseLeave={() => setHoveredCard(null)}
-                  className={`relative rounded-2xl bg-white flex flex-col overflow-hidden border-2 transition-all duration-300 cursor-pointer
+                  className={`relative rounded-2xl bg-white flex flex-col overflow-hidden border-2 transition-all duration-300 cursor-default
                     ${
                       card.highlighted
                         ? "border-blue-500 shadow-2xl shadow-blue-100 scale-[1.02]"
@@ -860,23 +860,23 @@ export default function Home() {
                     </ul>
                     <div className="mt-2 text-center">
                       <div className="flex items-center justify-center gap-3 mb-0.5">
-                        <span className="text-sm text-gray-400 line-through">
+                        {/* <span className="text-sm text-gray-400 line-through">
                           Rp{card.originalPrice.toLocaleString("id-ID")}
                         </span>
                         <span className="text-xs font-semibold text-red-500 bg-red-50 px-1.5 py-0.5 rounded">
                           -{card.discount}%
-                        </span>
+                        </span> */}
                       </div>
                       <div className="flex items-end justify-center gap-1">
-                        <span className="text-3xl font-extrabold text-blue-600 tracking-tight">
+                        {/* <span className="text-3xl font-extrabold text-blue-600 tracking-tight">
                           Rp{card.finalPrice.toLocaleString("id-ID")}
-                        </span>
-                        <span className="text-sm text-gray-500 mb-1">/jam</span>
+                        </span> */}
+                        {/* <span className="text-sm text-gray-500 mb-1">/jam</span> */}
                       </div>
                     </div>
-                    <button className="w-full py-3.5 rounded-xl font-bold text-base bg-blue-600 text-white hover:bg-blue-700 hover:shadow-lg hover:shadow-blue-200 active:scale-95 transition-all duration-200">
+                    {/* <button className="w-full py-3.5 rounded-xl font-bold text-base bg-blue-600 text-white hover:bg-blue-700 hover:shadow-lg hover:shadow-blue-200 active:scale-95 transition-all duration-200">
                       Booking Sekarang
-                    </button>
+                    </button> */}
                   </div>
                 </div>
               ))}
