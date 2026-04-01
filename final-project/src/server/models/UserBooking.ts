@@ -13,6 +13,7 @@ export interface IUserBooking {
   videoCallUrl?: string | null;
   isPaid: boolean;
   isDone: boolean;
+  reminderSent: boolean;
   createdAt: Date;
 }
 
@@ -43,6 +44,8 @@ export default class UserBooking {
     return db.collection<IUserBooking>("UserBookings");
   }
 
+  
+
   static async getBookingsByUserId(userId: string): Promise<BookingWithRelations[]> {
     const collection = await this.getCollection();
 
@@ -66,6 +69,33 @@ export default class UserBooking {
       ])
       .toArray();
   }
+
+  static async getBookingById(
+  bookingId: string
+): Promise<BookingWithRelations | null> {
+  const collection = await this.getCollection();
+
+  const result = await collection
+    .aggregate<BookingWithRelations>([
+      { $match: { _id: toObjectId(bookingId) } },
+      {
+        $lookup: {
+          from: "Users",
+          localField: "staffId",
+          foreignField: "_id",
+          as: "staff",
+        },
+      },
+      {
+        $addFields: {
+          staff: { $arrayElemAt: ["$staff", 0] },
+        },
+      },
+    ])
+    .toArray();
+
+  return result[0] || null; 
+}
 
   static async getBookingsByStaffId(staffId: string): Promise<BookingWithRelations[]> {
     const collection = await this.getCollection();
