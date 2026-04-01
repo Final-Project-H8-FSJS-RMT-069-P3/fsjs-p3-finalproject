@@ -103,11 +103,11 @@ export default class User {
     static async createPsychiatristInfo(id: string, info: Partial<IUser["psychiatristInfo"]>): Promise<string> {
         const collection = await this.getCollection();
         const result = await collection.updateOne(
-            { _id: new ObjectId(id), role: "psychiatrist" },
+            { _id: new ObjectId(id) },
             { $set: { psychiatristInfo: info } }
         );
         if (result.matchedCount === 0) {
-            throw new NotFoundError("Psychiatrist not found");
+            throw new NotFoundError("User not found");
         }
         return "Psychiatrist info created successfully";
     }
@@ -115,11 +115,11 @@ export default class User {
     static async updatePsychiatristInfo(id: string, info: Partial<IUser["psychiatristInfo"]>): Promise<string> {
         const collection = await this.getCollection();
         const result = await collection.updateOne(
-            { _id: new ObjectId(id), role: "psychiatrist" },
+            { _id: new ObjectId(id) },
             { $set: { psychiatristInfo: info } }
         );
         if (result.matchedCount === 0) {
-            throw new NotFoundError("Psychiatrist not found");
+            throw new NotFoundError("User not found");
         }
         return "Psychiatrist info updated successfully";
     }

@@ -14,19 +14,24 @@ export async function PATCH(req: Request) {
 
     // Update basic fields
     const collection = await User.getCollection();
-    const updateResult = await collection.updateOne(
+    await collection.updateOne(
       { _id: new (await import('mongodb')).ObjectId(session.user.id) },
       { $set: { name, phoneNumber, address } }
     );
 
     if (psychiatristInfo && session.user.role === 'DOCTOR') {
-      // Check if psychiatristInfo already exists
+      console.log("Updating psychiatrist info for user:", session.user.id);
+      console.log("Psychiatrist info data:", psychiatristInfo);
+      
+      // Fetch current user to check if psychiatristInfo exists
       const user = await User.getUserById(session.user.id);
-      if (user?.psychiatristInfo) {
-        // Update existing psychiatrist info
+      console.log("User psychiatristInfo exists:", !!user?.psychiatristInfo);
+      
+      if (user?.psychiatristInfo && Object.keys(user.psychiatristInfo).length > 0) {
+        console.log("Calling update method");
         await User.updatePsychiatristInfo(session.user.id, psychiatristInfo);
       } else {
-        // Create new psychiatrist info
+        console.log("Calling create method");
         await User.createPsychiatristInfo(session.user.id, psychiatristInfo);
       }
     }
