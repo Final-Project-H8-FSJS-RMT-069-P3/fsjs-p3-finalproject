@@ -17,27 +17,34 @@ function formatPhone(phone: string) {
 
 export async function sendWhatsApp(phone: string, message: string) {
   try {
-    log("[wablas] sending message", { phone, message });
-    log("[wablas] formatted phone", formatPhone(phone));
-    const res = await fetch("https://kudus.wablas.com/api/send-message", {
+    const formatted = formatPhone(phone);
+
+    log("[fonnte] sending message", { phone, message });
+    log("[fonnte] formatted phone", formatted);
+
+    const res = await fetch("https://api.fonnte.com/send", {
       method: "POST",
       headers: {
-        "Content-Type": "application/json",
-        Authorization: process.env.WABLAS_TOKEN!,
+        Authorization: process.env.FONNTE_TOKEN!,
       },
-      body: JSON.stringify({
-        phone: formatPhone(phone),
-        message,
+      body: new URLSearchParams({
+        target: formatted,
+        message: message,
+        countryCode: "62",
       }),
     });
 
     const data = await res.json();
-    console.log("[wablas] success:", {
+
+    console.log("[fonnte] success:", {
       original: phone,
-      formatted: formatPhone(phone),
+      formatted,
       response: data,
     });
+
+    return data;
   } catch (err) {
-    console.error("[wablas] failed:", err);
+    console.error("[fonnte] failed:", err);
+    throw err;
   }
 }

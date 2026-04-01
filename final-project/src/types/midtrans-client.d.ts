@@ -33,6 +33,9 @@ declare module "midtrans-client" {
     item_details?: ItemDetail[];
     customer_details?: CustomerDetails;
     credit_card?: CreditCard;
+    callbacks?: {
+      finish?: string;
+    };
   }
 
   export interface TransactionResponse {

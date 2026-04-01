@@ -39,8 +39,10 @@ export async function POST(request: NextRequest) {
 
     if (orderStatus === "success") {
       const order = await Order.getOrderById(order_id);
+      console.log("[webhook] Order retrieved:", { orderId: order_id, bookingId: order?.bookingId });
 
       if (!order?.bookingId) {
+        console.error("[webhook] No booking ID found in order:", order_id);
         return NextResponse.json(
           { message: "Booking not found" },
           { status: 404 },
@@ -48,21 +50,47 @@ export async function POST(request: NextRequest) {
       }
 
       const booking = await UserBooking.getBookingById(order.bookingId);
+      console.log("[webhook] Booking retrieved:", { bookingId: order.bookingId, isPaid: booking?.isPaid });
 
-      if (!booking || booking.isPaid) {
+      if (!booking) {
+        console.error("[webhook] Booking not found:", order.bookingId);
         return NextResponse.json(
-          { message: "Booking already paid or not found" },
-          { status: 400 },
+          { message: "Booking not found" },
+          { status: 404 },
         );
       }
 
+      if (booking.isPaid) {
+        console.log("[webhook] Booking already paid, skipping update:", order.bookingId);
+        return NextResponse.json(
+          { message: "Booking already paid" },
+          { status: 200 },
+        );
+      }
+
+      console.log("[webhook] Updating booking payment status to true:", order.bookingId);
       await UserBooking.updateBookingPaymentStatus(
         order.bookingId.toString(),
         true,
       );
+      console.log("[webhook] Booking payment status updated successfully:", order.bookingId);
 
       const userData = await User.getUserById(booking.userId.toString());
       const doctorData = await User.getUserById(booking.staffId.toString());
+
+      // Verify the update was successful
+      const updatedBooking = await UserBooking.getBookingById(order.bookingId);
+      if (updatedBooking?.isPaid) {
+        console.log("[webhook] ✓ Payment status confirmed in database:", {
+          bookingId: order.bookingId,
+          isPaid: updatedBooking.isPaid,
+        });
+      } else {
+        console.error("[webhook] ✗ Payment status update verification failed:", {
+          bookingId: order.bookingId,
+          isPaid: updatedBooking?.isPaid,
+        });
+      }
   
 
       const bookingDate = new Date(booking.date).toLocaleDateString("id-ID", {
