@@ -20,6 +20,8 @@ export async function POST(request: NextRequest) {
       clientKey: process.env.MIDTRANS_CLIENT_KEY || "",
     });
 
+    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000";
+
     const parameter = {
       transaction_details: {
         order_id: orderId,
@@ -30,7 +32,11 @@ export async function POST(request: NextRequest) {
       credit_card: {
         secure: true,
       },
-      finish_redirect_url: `${process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000"}/bookinglist`,
+      callbacks: {
+        finish: `${baseUrl}/bookinglist`,
+        pending: `${baseUrl}/payment?orderId=${encodeURIComponent(orderId)}&bookingId=${encodeURIComponent(String(bookingId ?? ""))}`,
+        error: `${baseUrl}/payment?orderId=${encodeURIComponent(orderId)}&bookingId=${encodeURIComponent(String(bookingId ?? ""))}`,
+      },
     };
 
     const transaction = await snap.createTransaction(parameter);
