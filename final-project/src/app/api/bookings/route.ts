@@ -156,7 +156,7 @@ export async function POST(req: Request) {
         .then(() => console.log("WhatsApp sent to doctor"))
   .catch((err) => console.error("WA doctor error:", err));
     }
-    const paymentUrl = `${process.env.NEXT_PUBLIC_BASE_URL}payment?bookingId=${result.insertedId.toString()}`;
+    const paymentUrl = `${process.env.NEXT_PUBLIC_BASE_URL}/payment?bookingId=${result.insertedId.toString()}`;
     if (userData?.phoneNumber) {
       const waMessage = [
         "*Complete Your Payment*",
