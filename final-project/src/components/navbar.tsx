@@ -127,12 +127,6 @@ export default function Navbar() {
           >
             Tentang kami
           </Link>
-          <Link
-            href="/bookinglist"
-            className="text-gray-500 hover:text-blue-700 transition-colors"
-          >
-            List Booking
-          </Link>
         </div>
 
         <div className="flex items-center gap-3">
