@@ -20,7 +20,15 @@ export async function PATCH(req: Request) {
     );
 
     if (psychiatristInfo && session.user.role === 'DOCTOR') {
-      await User.updatePsychiatristInfo(session.user.id, psychiatristInfo);
+      // Check if psychiatristInfo already exists
+      const user = await User.getUserById(session.user.id);
+      if (user?.psychiatristInfo) {
+        // Update existing psychiatrist info
+        await User.updatePsychiatristInfo(session.user.id, psychiatristInfo);
+      } else {
+        // Create new psychiatrist info
+        await User.createPsychiatristInfo(session.user.id, psychiatristInfo);
+      }
     }
 
     return NextResponse.json({ message: "Profile updated" });

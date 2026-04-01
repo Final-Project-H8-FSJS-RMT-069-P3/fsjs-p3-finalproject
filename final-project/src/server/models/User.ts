@@ -100,6 +100,18 @@ export default class User {
         return psychiatrist;
     }
 
+    static async createPsychiatristInfo(id: string, info: Partial<IUser["psychiatristInfo"]>): Promise<string> {
+        const collection = await this.getCollection();
+        const result = await collection.updateOne(
+            { _id: new ObjectId(id), role: "psychiatrist" },
+            { $set: { psychiatristInfo: info } }
+        );
+        if (result.matchedCount === 0) {
+            throw new NotFoundError("Psychiatrist not found");
+        }
+        return "Psychiatrist info created successfully";
+    }
+
     static async updatePsychiatristInfo(id: string, info: Partial<IUser["psychiatristInfo"]>): Promise<string> {
         const collection = await this.getCollection();
         const result = await collection.updateOne(
