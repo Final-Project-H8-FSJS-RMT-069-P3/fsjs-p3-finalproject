@@ -35,8 +35,6 @@ declare module "midtrans-client" {
     credit_card?: CreditCard;
     callbacks?: {
       finish?: string;
-      pending?: string;
-      error?: string;
     };
   }
 

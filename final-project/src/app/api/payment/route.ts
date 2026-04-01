@@ -34,8 +34,6 @@ export async function POST(request: NextRequest) {
       },
       callbacks: {
         finish: `${baseUrl}/bookinglist`,
-        pending: `${baseUrl}/payment?orderId=${encodeURIComponent(orderId)}&bookingId=${encodeURIComponent(String(bookingId ?? ""))}`,
-        error: `${baseUrl}/payment?orderId=${encodeURIComponent(orderId)}&bookingId=${encodeURIComponent(String(bookingId ?? ""))}`,
       },
     };
 
